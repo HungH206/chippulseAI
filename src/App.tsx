@@ -1039,11 +1039,11 @@ export default function App() {
             </div>
 
             {/* Recharts Bar Comparison Chart */}
-            <div className="lg:col-span-6 border border-slate-200 p-4 rounded-xl bg-slate-50/50">
+            <div className="lg:col-span-6 border border-slate-200 p-4 rounded-xl bg-slate-50/50 min-h-72 flex flex-col">
               <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">Benchmarking Matrix (0-100 Demand Scale)</span>
               
               {chartData.length > 0 ? (
-                <div className="h-44 w-full">
+                <div className="flex-1 min-h-48 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -1076,7 +1076,7 @@ export default function App() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-44 flex items-center justify-center text-slate-400 italic text-xs font-mono">
+                <div className="flex-1 min-h-48 flex items-center justify-center text-slate-400 italic text-xs font-mono">
                   Synthesize an evaluation run to populate chart benchmark matrices.
                 </div>
               )}

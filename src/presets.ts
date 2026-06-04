@@ -99,6 +99,7 @@ export function getPresetResult(presetId: string): EvaluationResult | null {
       demand_score: 94,
       trend: "Increasing",
       confidence: "High",
+      summary: `Demand pressure for NVIDIA Blackwell Ultra is currently ranked at 94/100 indicating an Increasing market stance with High analyst determination. The semiconductor market is experiencing unprecedented allocation tightness for advanced GPU and memory components. NVIDIA's Blackwell Ultra continues commanding premium demand across all geographic regions and customer segments. Manufacturing constraints are primarily driven by CoWoS substrate availability and HBM3E memory supply, not underlying die production capacity.`,
       drivers: [
         "Unprecedented AI datacenter buildouts by major cloud providers (OpenAI, Google, Meta, Amazon)",
         "H200 and B200 demand exceeding supply by 3-4x across all channels and allocations",
@@ -111,26 +112,62 @@ export function getPresetResult(presetId: string): EvaluationResult | null {
         "Engineering: Evaluate system-level workload distribution across multiple GPU types to maximize utilization and avoid future stranding.",
         "Financial: Model capex scenarios around 18-month lead times; plan cluster rollouts 2 quarters ahead of operational demand.",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **NVIDIA Blackwell Ultra** is currently ranked at **94/100** indicating an **Increasing** market stance with **High** analyst determination.
-
-The semiconductor market is experiencing unprecedented allocation tightness for advanced GPU and memory components. NVIDIA's Blackwell Ultra continues commanding premium demand across all geographic regions and customer segments. Manufacturing constraints are primarily driven by CoWoS substrate availability and HBM3E memory supply, not underlying die production capacity.
-
-Enterprise procurement leaders should prepare for sustained 12-18 month lead times and elevated pricing power from primary suppliers. Immediate action is required to secure long-term capacity agreements before Q3 pricing resets. Secondary-source evaluation (AMD, Intel) is strongly recommended to hedge against single-vendor supply shocks.`,
+      market_signals: [
+        {
+          title: "NVIDIA Q1 2026 Earnings",
+          signal: "Record GPU demand from hyperscalers; all Q2-Q3 allocation fully committed",
+          relevance: "High",
+        },
+        {
+          title: "CoWoS Capacity Alert",
+          signal: "TSMC's CoWoS substrate production at 110% utilization; 16-week lead times confirmed",
+          relevance: "High",
+        },
+        {
+          title: "Competitive Pressure",
+          signal: "AMD MI325X gaining traction; enterprises evaluating dual-source strategies",
+          relevance: "Medium",
+        },
+      ],
+      historical_matches: [
+        {
+          title: "2024 H100 Supply Constraint",
+          year: 2024,
+          similarity: 89,
+          impact: "Severe",
+          description: "Previous generation faced similar CoWoS bottleneck; lasted 18+ months",
+        },
+        {
+          title: "2023 HBM Supply Crisis",
+          year: 2023,
+          similarity: 92,
+          impact: "Critical",
+          description: "SK Hynix/Samsung dual-source scenario created allocation scarcity",
+        },
+      ],
       citations: [
         {
           title: "NVIDIA Q1 2026 Earnings & Guidance",
+          source: "NVIDIA Investor Relations",
           url: "https://investor.nvidia.com/",
         },
         {
           title: "Semiconductor Industry Association (SIA) Capacity Report",
+          source: "SIA",
           url: "https://www.semiconductors.org/",
         },
         {
           title: "Gartner Advanced Processor Roadmap Analysis",
+          source: "Gartner",
           url: "https://www.gartner.com/",
         },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Market Signal Analysis", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Historical Event Retrieval", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Gemini Forecast Generation", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Report Completed", status: "completed", timestamp: new Date().toISOString() },
       ],
       evaluated_at: new Date().toISOString(),
     },
@@ -139,38 +176,58 @@ Enterprise procurement leaders should prepare for sustained 12-18 month lead tim
       demand_score: 92,
       trend: "Increasing",
       confidence: "High",
+      summary: `High-bandwidth memory (HBM) represents the tightest supply constraint in the entire semiconductor value chain. SK Hynix's HBM3E production is fully allocated through Q4 2026 with significant backlog extending into 2027. The memory ecosystem is characterized by dual-source dominance (SK Hynix and Samsung) with neither supplier able to expand output materially within 18-month horizon.`,
       drivers: [
-        "GPU manufacturers requiring 3-4x more HBM capacity per generation due to larger models and batch sizes",
-        "SK Hynix and Samsung limited to dual-source scenario; each producing near 100% utilization rates",
-        "Memory density scaling into 12Hb stacks requiring new equipment validation cycles at foundries",
-        "Competitive intelligence: Both suppliers signaling inability to increase output before 2027 capacity expansions",
+        "GPU manufacturers requiring 3-4x more HBM capacity per generation due to larger models",
+        "SK Hynix and Samsung limited to dual-source scenario; each producing at 100% utilization",
+        "Memory density scaling into 12Hb stacks requiring new equipment validation cycles",
+        "Competitive intelligence: Both suppliers signaling inability to increase output before 2027",
       ],
       recommendations: [
-        "Procurement: Lock in HBM3E allocation with both SK Hynix and Micron (via Samsung partnership) to ensure no single supply point failure.",
-        "Design Strategy: Model HBM3 (older generation) compatibility as interim fallback to reduce binding dependency on latest HBM3E supply.",
-        "Supply Chain: Establish quarterly business reviews with memory suppliers to monitor yield trends and capacity planning changes.",
-        "Cost Management: Evaluate total cost of ownership including memory premiums; budget for 25-30% pricing variance over next 12 months.",
+        "Procurement: Lock in HBM3E allocation with both SK Hynix and Samsung to ensure no single supply point failure",
+        "Design Strategy: Model HBM3 (older generation) compatibility as interim fallback",
+        "Supply Chain: Establish quarterly business reviews with memory suppliers to monitor yield trends",
+        "Cost Management: Budget for 25-30% pricing variance over next 12 months",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **SK Hynix HBM3E Memory** is currently ranked at **92/100** indicating an **Increasing** market stance with **High** analyst determination.
-
-High-bandwidth memory (HBM) represents the tightest supply constraint in the entire semiconductor value chain. SK Hynix's HBM3E production is fully allocated through Q4 2026 with significant backlog extending into 2027. The memory ecosystem is characterized by dual-source dominance (SK Hynix and Samsung) with neither supplier able to expand output materially within 18-month horizon.
-
-Procurement teams must secure multi-year HBM agreements immediately and evaluate design flexibility to accommodate dual-generation memory stacks. Lead times for HBM3E components are currently 16-20 months with upside risk if demand accelerates further.`,
+      market_signals: [
+        {
+          title: "HBM Production Bottleneck",
+          signal: "SK Hynix HBM3E output constrained by equipment and packaging capacity",
+          relevance: "High",
+        },
+        {
+          title: "Price Escalation",
+          signal: "HBM3E pricing increased 18% YoY; further 12-15% hikes expected Q3",
+          relevance: "High",
+        },
+      ],
+      historical_matches: [
+        {
+          title: "2023 HBM Supply Crisis",
+          year: 2023,
+          similarity: 95,
+          impact: "Critical",
+          description: "Dual-source memory bottleneck lasted 20+ months",
+        },
+      ],
       citations: [
         {
-          title: "SK Hynix HBM Technology Leadership & Capacity Roadmap",
+          title: "SK Hynix HBM Technology Leadership",
+          source: "SK Hynix",
           url: "https://www.skhynix.com/",
         },
         {
-          title: "Micron Advanced Memory Systems Analysis",
+          title: "Micron Advanced Memory Analysis",
+          source: "Micron",
           url: "https://www.micron.com/",
         },
-        {
-          title: "SemiEngineering HBM Supply Chain Deep Dive",
-          url: "https://www.semiengineering.com/",
-        },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed" },
+        { step: "Market Signal Analysis", status: "completed" },
+        { step: "Historical Event Retrieval", status: "completed" },
+        { step: "Gemini Forecast Generation", status: "completed" },
+        { step: "Report Completed", status: "completed" },
       ],
       evaluated_at: new Date().toISOString(),
     },
@@ -179,30 +236,46 @@ Procurement teams must secure multi-year HBM agreements immediately and evaluate
       demand_score: 78,
       trend: "Stable",
       confidence: "Medium",
+      summary: `High-speed data center switching silicon has entered a stabilization phase following the initial AI infrastructure rush. Supply conditions have normalized compared to 2024-2025 shortage cycles. Broadcom's Tomahawk 5 family continues capturing enterprise demand but order patterns suggest moderating procurement cycles post-capex peak.`,
       drivers: [
-        "Data center switch deployments moderating after AI infrastructure peak buildout cycle",
+        "Data center switch deployments moderating after AI infrastructure peak",
         "400G and 800G optical interface standardization creating inventory normalization",
-        "Broadcom maintaining competitive pricing leverage but supply stabilizing post-shortage",
+        "Broadcom maintaining competitive pricing leverage but supply stabilizing",
       ],
       recommendations: [
-        "Procurement: Current supply-demand balance allows for standard lead-time commitments (6-9 months).",
-        "Design: Lock in current BOM specifications; pricing stability expected for next 12 months.",
-        "Inventory: Maintain 2-quarter safety stock for critical switching components.",
+        "Procurement: Current supply-demand balance allows for standard lead-time commitments (6-9 months)",
+        "Design: Lock in current BOM specifications; pricing stability expected for 12 months",
+        "Inventory: Maintain 2-quarter safety stock for critical switching components",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **Broadcom Tomahawk 5** is currently ranked at **78/100** indicating a **Stable** market stance with **Medium** analyst determination.
-
-High-speed data center switching silicon has entered a stabilization phase following the initial AI infrastructure rush. Supply conditions have normalized compared to 2024-2025 shortage cycles. Broadcom's Tomahawk 5 family continues capturing enterprise demand but order patterns suggest moderating procurement cycles post-capex peak.`,
+      market_signals: [
+        {
+          title: "Switch Demand Normalization",
+          signal: "Data center switch orders declining 8-12% QoQ as AI capex moderates",
+          relevance: "Medium",
+        },
+      ],
+      historical_matches: [
+        {
+          title: "2022 Networking Peak",
+          year: 2022,
+          similarity: 72,
+          impact: "Moderate",
+          description: "Similar normalization pattern after infrastructure surge",
+        },
+      ],
       citations: [
         {
-          title: "Broadcom Networking Solutions Portfolio",
+          title: "Broadcom Networking Solutions",
+          source: "Broadcom",
           url: "https://www.broadcom.com/",
         },
-        {
-          title: "Data Center Infrastructure Spending Forecast",
-          url: "https://www.gartner.com/",
-        },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed" },
+        { step: "Market Signal Analysis", status: "completed" },
+        { step: "Historical Event Retrieval", status: "completed" },
+        { step: "Gemini Forecast Generation", status: "completed" },
+        { step: "Report Completed", status: "completed" },
       ],
       evaluated_at: new Date().toISOString(),
     },
@@ -211,30 +284,46 @@ High-speed data center switching silicon has entered a stabilization phase follo
       demand_score: 88,
       trend: "Increasing",
       confidence: "Medium",
+      summary: `AMD's MI325X is emerging as the primary competitive alternative to NVIDIA in GPU-accelerated AI workloads. Production availability is improving but demand among hyperscalers and enterprise customers is growing faster than AMD's capacity ramping.`,
       drivers: [
-        "Competitive alternative to NVIDIA gaining traction in hyperscaler alternative architectures",
-        "MI325X production scaling successfully but demand growing faster than supply ramping",
-        "Enterprise softwar ecosystem maturity improving, enabling broader adoption beyond NVIDIA incumbents",
+        "Competitive alternative to NVIDIA gaining traction in hyperscaler alternatives",
+        "MI325X production scaling successfully but demand growing faster than supply",
+        "Enterprise software ecosystem maturity improving, enabling broader adoption",
       ],
       recommendations: [
-        "Procurement: Establish relationship with AMD and authorized distributors to secure MI325X allocation.",
-        "Engineering: Invest in software optimization for AMD ROCM framework to enable production readiness.",
-        "Risk Strategy: Treat MI325X as hedge against single-GPU-vendor dependency; plan 20-30% of fleet diversity.",
+        "Procurement: Establish relationship with AMD and authorized distributors for allocation",
+        "Engineering: Invest in software optimization for AMD ROCM framework",
+        "Risk Strategy: Treat MI325X as hedge; plan 20-30% of fleet diversity",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **AMD MI325X Accelerator** is currently ranked at **88/100** indicating an **Increasing** market stance with **Medium** analyst determination.
-
-AMD's MI325X is emerging as the primary competitive alternative to NVIDIA in GPU-accelerated AI workloads. Production availability is improving but demand among hyperscalers and enterprise customers is growing faster than AMD's capacity ramping. The MI325X offers attractive total cost of ownership and supply diversification benefits for risk-conscious buyers.`,
+      market_signals: [
+        {
+          title: "AMD Competitive Gain",
+          signal: "5+ hyperscalers now evaluating or deploying MI325X at scale",
+          relevance: "High",
+        },
+      ],
+      historical_matches: [
+        {
+          title: "AMD GPU Market Entry 2022",
+          year: 2022,
+          similarity: 65,
+          impact: "Moderate",
+          description: "Previous GPU alternative adoption took 18+ months to reach scale",
+        },
+      ],
       citations: [
         {
-          title: "AMD EPYC & MI Series Accelerators Strategy",
+          title: "AMD EPYC & MI Series Accelerators",
+          source: "AMD",
           url: "https://www.amd.com/",
         },
-        {
-          title: "Competitive GPU Analysis & Market Share Trends",
-          url: "https://www.gartner.com/",
-        },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed" },
+        { step: "Market Signal Analysis", status: "completed" },
+        { step: "Historical Event Retrieval", status: "completed" },
+        { step: "Gemini Forecast Generation", status: "completed" },
+        { step: "Report Completed", status: "completed" },
       ],
       evaluated_at: new Date().toISOString(),
     },
@@ -243,30 +332,37 @@ AMD's MI325X is emerging as the primary competitive alternative to NVIDIA in GPU
       demand_score: 72,
       trend: "Stable",
       confidence: "Medium",
+      summary: `Intel's Gaudi 3 accelerator provides viable alternative positioning in the GPU market but with significantly lower demand pressure than NVIDIA or AMD offerings. Supply-demand dynamics remain balanced with adequate production capacity.`,
       drivers: [
-        "Intel Gaudi growing market share in custom training workloads at hyperscalers",
+        "Intel Gaudi growing market share in custom training workloads",
         "Supply availability adequate but demand remains below nameplate capacity",
-        "Competitive positioning improving but market share still limited vs. NVIDIA and AMD",
+        "Competitive positioning improving but market share still limited",
       ],
       recommendations: [
-        "Procurement: Gaudi 3 can be sourced on 9-12 month lead times with reasonable allocation flexibility.",
-        "Engineering: Evaluate Gaudi 3 for specific workload types (inference, training) where performance-per-watt is optimized.",
-        "Strategic: Consider Gaudi 3 as third GPU option for fleet diversification and negotiation leverage.",
+        "Procurement: Gaudi 3 sourced on 9-12 month lead times with flexibility",
+        "Engineering: Evaluate Gaudi 3 for specific workload types where optimized",
+        "Strategic: Consider as third GPU option for fleet diversification",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **Intel Gaudi 3** is currently ranked at **72/100** indicating a **Stable** market stance with **Medium** analyst determination.
-
-Intel's Gaudi 3 accelerator provides viable alternative positioning in the GPU market but with significantly lower demand pressure than NVIDIA or AMD offerings. Supply-demand dynamics remain balanced with adequate production capacity. Procurement can access Gaudi 3 on more favorable lead times and pricing compared to tier-1 competitors.`,
+      market_signals: [
+        {
+          title: "Stable Supply Position",
+          signal: "Intel Gaudi production stable; no allocation constraints",
+          relevance: "Medium",
+        },
+      ],
+      historical_matches: [],
       citations: [
         {
-          title: "Intel Gaudi Accelerator Product Family",
+          title: "Intel Gaudi Accelerator",
+          source: "Intel",
           url: "https://www.intel.com/",
         },
-        {
-          title: "AI Accelerator Competitive Landscape Report",
-          url: "https://www.gartner.com/",
-        },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed" },
+        { step: "Market Signal Analysis", status: "completed" },
+        { step: "Gemini Forecast Generation", status: "completed" },
+        { step: "Report Completed", status: "completed" },
       ],
       evaluated_at: new Date().toISOString(),
     },
@@ -275,29 +371,35 @@ Intel's Gaudi 3 accelerator provides viable alternative positioning in the GPU m
       demand_score: 65,
       trend: "Stable",
       confidence: "Medium",
+      summary: `Premium mobile processor demand remains healthy but supply-constrained environments have not materialized. Qualcomm maintains competitive share but faces intense competition from Apple's proprietary solutions and MediaTek's value positioning.`,
       drivers: [
         "Premium mobile market growth moderate; competition from Apple and MediaTek strong",
-        "AI-enabled features driving some incremental demand but not shortage conditions",
+        "AI-enabled features driving incremental demand but no shortage conditions",
         "Supply-demand equilibrium maintained with standard industry lead times",
       ],
       recommendations: [
-        "Procurement: Standard 12-14 week lead times; no allocation concerns for mainstream volumes.",
-        "Design: Plan product roadmaps independently of supply constraints for this component family.",
+        "Procurement: Standard 12-14 week lead times; no allocation concerns",
+        "Design: Plan product roadmaps independently of supply constraints",
       ],
-      summary: `### Executive Intelligence Summary
-
-Demand pressure for **Qualcomm Snapdragon X Elite** is currently ranked at **65/100** indicating a **Stable** market stance with **Medium** analyst determination.
-
-Premium mobile processor demand remains healthy but supply-constrained environments have not materialized. Qualcomm maintains competitive share but faces intense competition from Apple's proprietary solutions and MediaTek's value positioning. Supply dynamics are normal with predictable lead times and allocation patterns.`,
+      market_signals: [
+        {
+          title: "Normal Supply Conditions",
+          signal: "Snapdragon supply operating within normal parameters",
+          relevance: "Low",
+        },
+      ],
+      historical_matches: [],
       citations: [
         {
-          title: "Qualcomm Snapdragon Mobile Processors",
+          title: "Qualcomm Snapdragon",
+          source: "Qualcomm",
           url: "https://www.qualcomm.com/",
         },
-        {
-          title: "Mobile Semiconductor Market Analysis",
-          url: "https://www.gartner.com/",
-        },
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed" },
+        { step: "Market Signal Analysis", status: "completed" },
+        { step: "Report Completed", status: "completed" },
       ],
       evaluated_at: new Date().toISOString(),
     },
