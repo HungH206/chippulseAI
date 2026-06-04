@@ -1,0 +1,98 @@
+[
+  {
+    "event_id": "evt_hbm_2025",
+    "title": "2025 HBM Supply Constraint",
+    "summary": "Memory demand exceeded supply as AI accelerator shipments consumed available HBM allocation.",
+    "category": "memory",
+    "year": 2025,
+    "impact": "Critical"
+  },
+  {
+    "event_id": "evt_cowos_2024",
+    "title": "2024 CoWoS Packaging Backlog",
+    "summary": "Advanced packaging queues delayed GPU server builds and forced allocation-based procurement.",
+    "category": "packaging",
+    "year": 2024,
+    "impact": "Severe"
+  },
+  {
+    "event_id": "evt_hyperscaler_gpu_prebuy_2024",
+    "title": "2024 Hyperscaler GPU Prebuy",
+    "summary": "Cloud providers pulled accelerator orders forward to secure capacity before datacenter expansion.",
+    "category": "gpu",
+    "year": 2024,
+    "impact": "Severe"
+  },
+  {
+    "event_id": "evt_enterprise_ai_server_2023",
+    "title": "2023 Enterprise AI Server Spike",
+    "summary": "Enterprise pilots moved into production, lifting demand for GPU servers and high-speed networking.",
+    "category": "gpu",
+    "year": 2023,
+    "impact": "Moderate"
+  },
+  {
+    "event_id": "evt_hbm_qualification_2023",
+    "title": "2023 HBM Qualification Bottleneck",
+    "summary": "Memory suppliers needed longer qualification cycles for higher-density stacks.",
+    "category": "memory",
+    "year": 2023,
+    "impact": "Critical"
+  },
+  {
+    "event_id": "evt_automotive_mcu_2022",
+    "title": "2022 Automotive MCU Shortage",
+    "summary": "Automakers competed for mature-node controller supply after demand recovered faster than forecast.",
+    "category": "automotive",
+    "year": 2022,
+    "impact": "Severe"
+  },
+  {
+    "event_id": "evt_abf_substrate_2022",
+    "title": "2022 ABF Substrate Constraint",
+    "summary": "Server CPU and networking vendors faced limited substrate availability for advanced packages.",
+    "category": "substrate",
+    "year": 2022,
+    "impact": "Severe"
+  },
+  {
+    "event_id": "evt_foundry_leadtime_2021",
+    "title": "2021 Foundry Lead-Time Expansion",
+    "summary": "Wafer starts filled months in advance across mature and advanced nodes.",
+    "category": "foundry",
+    "year": 2021,
+    "impact": "Critical"
+  },
+  {
+    "event_id": "evt_ddr5_launch_2021",
+    "title": "2021 DDR5 Launch Allocation",
+    "summary": "Platform transitions increased demand for memory modules while validation supply remained limited.",
+    "category": "memory",
+    "year": 2021,
+    "impact": "Moderate"
+  },
+  {
+    "event_id": "evt_remote_work_pc_2020",
+    "title": "2020 Remote Work PC Surge",
+    "summary": "Notebook and peripheral demand pulled forward component purchasing across the channel.",
+    "category": "client",
+    "year": 2020,
+    "impact": "Moderate"
+  },
+  {
+    "event_id": "evt_logistics_disruption_2020",
+    "title": "2020 Logistics Disruption",
+    "summary": "Factory shutdowns and freight disruption widened delivery variance for key chip categories.",
+    "category": "logistics",
+    "year": 2020,
+    "impact": "Severe"
+  },
+  {
+    "event_id": "evt_memory_inventory_2019",
+    "title": "2019 Memory Inventory Correction",
+    "summary": "DRAM and NAND inventory normalized after a period of aggressive customer purchasing.",
+    "category": "memory",
+    "year": 2019,
+    "impact": "Low"
+  }
+]

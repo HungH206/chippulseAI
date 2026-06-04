@@ -4,10 +4,37 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-async function analyzeDemand(component) {
+function formatContextList(items, formatter) {
+  if (!items || items.length === 0) {
+    return "None available.";
+  }
+
+  return items.map(formatter).join("\n");
+}
+
+async function analyzeDemand(component, customSignal = "", context = {}) {
+  const signalContext = customSignal
+    ? `\nAdditional user-provided market signal:\n"${customSignal}"`
+    : "";
+  const historicalEvents = formatContextList(
+    context.historicalEvents,
+    (event) => `- ${event.event_id}: ${event.title} (${event.year}, ${event.category}, ${event.impact}) - ${event.summary}`
+  );
+  const industryReports = formatContextList(
+    context.industryReports,
+    (report) => `- ${report.report_id}: ${report.title} (${report.source}) - ${report.summary}`
+  );
+
   const prompt = `You are ChipPulse AI, an expert in semiconductor and chip demand analysis.
 
 Analyze demand pressure for: "${component}"
+${signalContext}
+
+Use this MongoDB historical_events context as persistent agent memory:
+${historicalEvents}
+
+Use this MongoDB industry_reports context as persistent agent memory:
+${industryReports}
 
 Return ONLY a valid JSON object (no markdown, no backticks, no extra text):
 {

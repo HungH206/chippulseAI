@@ -76,6 +76,23 @@ export default function App() {
         console.error("Failed to load history from local storage", e);
       }
     }
+
+    fetch("/api/history")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("History endpoint unavailable");
+        }
+        return response.json();
+      })
+      .then((serverHistory: EvaluationResult[]) => {
+        if (Array.isArray(serverHistory) && serverHistory.length > 0) {
+          setHistoryList(serverHistory);
+          setCurrentResult(serverHistory[0]);
+        }
+      })
+      .catch((error) => {
+        console.warn("Using local history fallback:", error.message);
+      });
   }, []);
 
   // Sync history to local storage
@@ -241,8 +258,29 @@ export default function App() {
       ],
       summary: `### Executive Intelligence Summary\n\nDemand pressure for **${comp}** is currently ranked at **${score}/100** indicating a **${trend}** market stance with **${confidence}** analyst determination.\n\n${signalText} While current macro conditions are highly fluid due to deep multi-tier sub-component wait times, advanced logic nodes remain tightly allocated. Hardware planners must prepare for sustained packaging delays and rising wafer costs from primary foundries across APAC.\n\nOver the short-to-medium term, scaling limits of silicon substrates and high-density packaging components like ABF and CoWoS will determine physical production ceilings. Enterprise procurement leaders should secure long-term capital guarantees prior to planning large cluster rollouts.`,
       citations: [
-        { title: "Semiconductor Industry Outlook & Capacity Insights", url: "https://www.semiconductors.org" },
-        { title: "Gartner Advanced Lithography Sourcing Study", url: "https://www.gartner.com" }
+        { title: "Semiconductor Industry Outlook & Capacity Insights", source: "SIA", url: "https://www.semiconductors.org" },
+        { title: "Gartner Advanced Lithography Sourcing Study", source: "Gartner", url: "https://www.gartner.com" }
+      ],
+      market_signals: [
+        {
+          title: "Local Signal Context",
+          signal: signalText,
+          relevance: confidence as "High" | "Medium" | "Low",
+        }
+      ],
+      historical_matches: [
+        {
+          title: "2025 HBM Supply Constraint",
+          year: 2025,
+          similarity: 84,
+          impact: "Severe",
+          description: "A simulated historical analogue for constrained AI infrastructure components."
+        }
+      ],
+      agent_activity: [
+        { step: "Query Received", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Local Fallback Analysis", status: "completed", timestamp: new Date().toISOString() },
+        { step: "Report Completed", status: "completed", timestamp: new Date().toISOString() },
       ],
       evaluated_at: new Date().toISOString()
     };
@@ -269,6 +307,20 @@ export default function App() {
   };
 
   const activeColor = currentResult ? getScoreColorClass(currentResult.demand_score) : { text: "text-slate-500", border: "border-slate-300", radial: "#475569", bg: "bg-slate-500" };
+
+  const formatLedgerDate = (isoDate?: string) => {
+    if (!isoDate) return "Unknown";
+
+    const date = new Date(isoDate);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
 
   // Prepare chart data from active history
   const chartData = historyList.map((item) => ({
@@ -981,12 +1033,13 @@ export default function App() {
             
             {/* Table comparison database of chips */}
             <div className="lg:col-span-6 overflow-x-auto">
-              <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">History Table</span>
+              <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">Recent Analyses</span>
               <table className="w-full text-left font-sans text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-400 font-mono text-[10px] uppercase">
                     <th className="pb-2.5 font-semibold">Component</th>
                     <th className="pb-2.5 font-semibold text-center">Score</th>
+                    <th className="pb-2.5 font-semibold text-center">Date</th>
                     <th className="pb-2.5 font-semibold text-center">Trend</th>
                     <th className="pb-2.5 font-semibold text-center">Confidence</th>
                     <th className="pb-2.5 font-semibold text-right">Actions</th>
@@ -1005,6 +1058,7 @@ export default function App() {
                           {hist.demand_score}
                         </span>
                       </td>
+                      <td className="py-3 text-center font-mono text-[10px] text-slate-500">{formatLedgerDate(hist.evaluated_at)}</td>
                       <td className="py-3 text-center">
                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono capitalize ${
                           hist.trend.toLowerCase() === "increasing" ? "bg-emerald-50 text-emerald-700" :
@@ -1029,7 +1083,7 @@ export default function App() {
                   ))}
                   {historyList.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400 italic font-mono text-xs">
+                      <td colSpan={6} className="py-8 text-center text-slate-400 italic font-mono text-xs">
                         No previous evaluation sequences captured in history ledger.
                       </td>
                     </tr>

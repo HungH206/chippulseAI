@@ -1,0 +1,20 @@
+[
+  {
+    "report_id": "rpt_ai_infra",
+    "title": "AI Infrastructure Expansion",
+    "source": "Industry Analysis",
+    "summary": "Hyperscalers increased GPU purchases and expanded cluster rollout plans."
+  },
+  {
+    "report_id": "rpt_packaging_capacity",
+    "title": "Advanced Packaging Capacity Watch",
+    "source": "Supply Chain Desk",
+    "summary": "CoWoS and high-density substrate capacity remain key gating factors for accelerator availability."
+  },
+  {
+    "report_id": "rpt_memory_allocation",
+    "title": "Memory Supplier Allocation Brief",
+    "source": "Procurement Intelligence",
+    "summary": "HBM supplier allocation remains tight across AI accelerator programs."
+  }
+]

@@ -2,6 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { analyzeDemand } = require('./services/gemini.js');
+const {
+  getHistoricalEventsForComponent,
+  getIndustryReports,
+  getRecentAnalyses,
+  mapEventsToHistoricalMatches,
+  saveAnalysis,
+} = require('./services/db.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,7 +53,12 @@ app.post('/api/evaluate', async (req, res) => {
       return res.status(400).json({ error: 'component field is required' });
     }
 
-    const result = await analyzeDemand(component);
+    const historicalEvents = await getHistoricalEventsForComponent(component);
+    const industryReports = await getIndustryReports();
+    const result = await analyzeDemand(component, customSignal, {
+      historicalEvents,
+      industryReports,
+    });
     console.log('Gemini raw response:', result.substring(0, 200));
     console.log('Response length:', result.length);
     
@@ -63,6 +75,8 @@ app.post('/api/evaluate', async (req, res) => {
     }
 
     // Transform to complete EvaluationResult interface
+    const historicalMatches = mapEventsToHistoricalMatches(historicalEvents.slice(0, 3), component);
+
     const formattedResponse = {
       component,
       demand_score: analysisData.score || 75,
@@ -78,11 +92,15 @@ app.post('/api/evaluate', async (req, res) => {
           title: "Market Context",
           signal: analysisData.explanation || "Analysis in progress",
           relevance: analysisData.confidence || "Medium"
-        }
+        },
+        ...industryReports.slice(0, 2).map((report) => ({
+          title: report.title,
+          signal: report.summary,
+          relevance: "Medium"
+        }))
       ],
       
-      // Historical matches (empty until MongoDB integration)
-      historical_matches: [],
+      historical_matches: historicalMatches,
       
       // Citations
       citations: [
@@ -102,6 +120,8 @@ app.post('/api/evaluate', async (req, res) => {
       evaluated_at: new Date().toISOString()
     };
 
+    await saveAnalysis(formattedResponse);
+
     res.json(formattedResponse);
   } catch (error) {
     console.error('Error evaluating demand:', error);
@@ -109,8 +129,19 @@ app.post('/api/evaluate', async (req, res) => {
   }
 });
 
+app.get('/api/history', async (req, res) => {
+  try {
+    const history = await getRecentAnalyses(12);
+    res.json(history);
+  } catch (error) {
+    console.error('Error loading history:', error);
+    res.status(500).json({ error: error.message || 'Failed to load history' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`POST /api/analyze - Raw Gemini response (for testing)`);
   console.log(`POST /api/evaluate - Formatted response (for frontend)`);
+  console.log(`GET /api/history - Recent persisted analyses`);
 });
