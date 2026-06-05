@@ -27,6 +27,7 @@ async function seed() {
   await db.collection('historical_events').createIndex({ category: 1 });
   await db.collection('industry_reports').createIndex({ report_id: 1 }, { unique: true });
   await db.collection('industry_reports').createIndex({ title: 1 });
+  await db.collection('industry_reports').createIndex({ category: 1 });
 
   console.log(`Seeded ${historicalEvents.length} historical events.`);
   console.log(`Seeded ${industryReports.length} industry reports.`);

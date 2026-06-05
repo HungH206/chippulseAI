@@ -49,8 +49,6 @@ async function getRecentAnalyses(limit = 10) {
       {
         projection: {
           _id: 0,
-          created_at: 0,
-          custom_signal: 0,
           component: 1,
           demand_score: 1,
           trend: 1,
@@ -142,6 +140,35 @@ async function getIndustryReports(limit = 3) {
     .toArray();
 }
 
+// Retrieve industry reports relevant to the component using the same
+// category matching used for historical events. Falls back to recent
+// reports when no category matches so the agent always has citations.
+async function getRelevantIndustryReports(component, limit = 3) {
+  const database = await getDb();
+  if (!database) {
+    return [];
+  }
+
+  const query = buildComponentContextQuery(component);
+  const reports = await database
+    .collection('industry_reports')
+    .find(query, { projection: { _id: 0, created_at: 0 } })
+    .sort({ created_at: -1, title: 1 })
+    .limit(limit)
+    .toArray();
+
+  if (reports.length > 0 || Object.keys(query).length === 0) {
+    return reports;
+  }
+
+  return database
+    .collection('industry_reports')
+    .find({}, { projection: { _id: 0, created_at: 0 } })
+    .sort({ created_at: -1, title: 1 })
+    .limit(limit)
+    .toArray();
+}
+
 function mapEventsToHistoricalMatches(events, component) {
   return events.map((event, index) => ({
     title: event.title,
@@ -171,6 +198,7 @@ module.exports = {
   getHistoricalEventsForComponent,
   getHistoricalMatches,
   getIndustryReports,
+  getRelevantIndustryReports,
   getRecentAnalyses,
   mapEventsToHistoricalMatches,
   saveAnalysis,

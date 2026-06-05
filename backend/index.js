@@ -4,7 +4,7 @@ const cors = require('cors');
 const { analyzeDemand } = require('./services/gemini.js');
 const {
   getHistoricalEventsForComponent,
-  getIndustryReports,
+  getRelevantIndustryReports,
   getRecentAnalyses,
   mapEventsToHistoricalMatches,
   saveAnalysis,
@@ -54,7 +54,7 @@ app.post('/api/evaluate', async (req, res) => {
     }
 
     const historicalEvents = await getHistoricalEventsForComponent(component);
-    const industryReports = await getIndustryReports();
+    const industryReports = await getRelevantIndustryReports(component);
     const result = await analyzeDemand(component, customSignal, {
       historicalEvents,
       industryReports,
@@ -101,22 +101,27 @@ app.post('/api/evaluate', async (req, res) => {
       ],
       
       historical_matches: historicalMatches,
-      
-      // Citations
-      citations: [
-        { title: "Semiconductor Industry Outlook", source: "SIA", url: "https://www.semiconductors.org" },
-        { title: "Market Analysis Report", source: "Gartner", url: "https://www.gartner.com" }
-      ],
-      
-      // Agent activity timeline
+
+      // Citations sourced from MongoDB industry_reports
+      citations: industryReports.map((report) => ({
+        title: report.title,
+        source: report.source,
+      })),
+
+      // Agent activity timeline reflecting the real retrieval pipeline
       agent_activity: [
-        { step: "Query Received", status: "completed" },
-        { step: "Market Signal Analysis", status: "completed" },
-        { step: "Historical Event Retrieval", status: "completed" },
-        { step: "Gemini Forecast Generation", status: "completed" },
-        { step: "Report Completed", status: "completed" }
+        {
+          step: `Retrieved ${historicalEvents.length} historical ${historicalEvents.length === 1 ? 'event' : 'events'} from memory`,
+          status: "completed",
+        },
+        {
+          step: `Retrieved ${industryReports.length} industry ${industryReports.length === 1 ? 'report' : 'reports'}`,
+          status: "completed",
+        },
+        { step: "Generated Gemini demand forecast", status: "completed" },
+        { step: "Stored analysis in MongoDB", status: "completed" },
       ],
-      
+
       evaluated_at: new Date().toISOString()
     };
 
