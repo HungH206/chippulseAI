@@ -7,6 +7,7 @@ export interface MarketSignal {
 export interface HistoricalMatch {
   title: string;
   year?: number;
+  score?: number;
   similarity: number;
   impact: "Critical" | "Severe" | "Moderate" | "Low";
   description: string;
@@ -30,6 +31,15 @@ export interface ScoreBreakdown {
   explanation: string;
 }
 
+export interface RetrievalMetadata {
+  historical_events_retrieved: number;
+  industry_reports_retrieved: number;
+  vector_search_used: boolean;
+  retrieval_mode?: string;
+  historical_events_index?: string | null;
+  industry_reports_index?: string | null;
+}
+
 export interface EvaluationResult {
   component: string;
   demand_score: number;
@@ -42,6 +52,7 @@ export interface EvaluationResult {
   recommendations: string[];
   market_signals: MarketSignal[];
   historical_matches: HistoricalMatch[];
+  retrieval_metadata?: RetrievalMetadata;
   citations: Citation[];
   agent_activity: AgentStep[];
   evaluated_at: string;

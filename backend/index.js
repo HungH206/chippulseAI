@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { getEmbedding } = require('./services/embeddings.js');
 const { analyzeDemand } = require('./services/gemini.js');
 const {
   getHistoricalEventsForComponent,
@@ -10,6 +11,10 @@ const {
   saveAnalysis,
 } = require('./services/db.js');
 const { calculateDemandScore } = require('./services/scoring.js');
+const {
+  searchHistoricalEvents,
+  searchIndustryReports,
+} = require('./services/vectorSearch.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,9 +59,36 @@ app.post('/api/evaluate', async (req, res) => {
       return res.status(400).json({ error: 'component field is required' });
     }
 
-    const historicalEvents = await getHistoricalEventsForComponent(component);
-    const industryReports = await getRelevantIndustryReports(component);
+    let retrievalMode = 'Atlas Vector Search';
+    let vectorSearchUsed = true;
+    let historicalEvents;
+    let industryReports;
+
+    try {
+      const queryEmbedding = await getEmbedding(`${component} ${customSignal || ''}`.trim());
+      [historicalEvents, industryReports] = await Promise.all([
+        searchHistoricalEvents(queryEmbedding, 3),
+        searchIndustryReports(queryEmbedding, 3),
+      ]);
+    } catch (retrievalError) {
+      retrievalMode = 'category fallback';
+      vectorSearchUsed = false;
+      console.warn('Vector retrieval unavailable, falling back to category matching:', retrievalError.message);
+      [historicalEvents, industryReports] = await Promise.all([
+        getHistoricalEventsForComponent(component),
+        getRelevantIndustryReports(component),
+      ]);
+    }
+
     const historicalMatches = mapEventsToHistoricalMatches(historicalEvents.slice(0, 3), component);
+    const retrievalMetadata = {
+      historical_events_retrieved: historicalEvents.length,
+      industry_reports_retrieved: industryReports.length,
+      vector_search_used: vectorSearchUsed,
+      retrieval_mode: retrievalMode,
+      historical_events_index: vectorSearchUsed ? process.env.MONGODB_HISTORICAL_EVENTS_VECTOR_INDEX || 'historical_events_vector' : null,
+      industry_reports_index: vectorSearchUsed ? process.env.MONGODB_INDUSTRY_REPORTS_VECTOR_INDEX || 'industry_reports_index' : null,
+    };
     const scoreContext = calculateDemandScore({
       component,
       customSignal,
@@ -109,6 +141,7 @@ app.post('/api/evaluate', async (req, res) => {
       ],
       
       historical_matches: historicalMatches,
+      retrieval_metadata: retrievalMetadata,
 
       // Citations sourced from MongoDB industry_reports
       citations: industryReports.map((report) => ({
@@ -119,11 +152,11 @@ app.post('/api/evaluate', async (req, res) => {
       // Agent activity timeline reflecting the real retrieval pipeline
       agent_activity: [
         {
-          step: `Retrieved ${historicalEvents.length} historical ${historicalEvents.length === 1 ? 'event' : 'events'} from memory`,
+          step: `Retrieved ${historicalEvents.length} historical ${historicalEvents.length === 1 ? 'event' : 'events'} from MongoDB memory via ${retrievalMode}`,
           status: "completed",
         },
         {
-          step: `Retrieved ${industryReports.length} industry ${industryReports.length === 1 ? 'report' : 'reports'}`,
+          step: `Retrieved ${industryReports.length} industry ${industryReports.length === 1 ? 'report' : 'reports'} via ${retrievalMode}`,
           status: "completed",
         },
         { step: "Calculated deterministic demand score", status: "completed" },
@@ -153,9 +186,34 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
+app.get('/api/test-vector', async (req, res) => {
+  try {
+    const query = req.query.q || 'Apple M4 Mac Mini demand';
+    const embedding = await getEmbedding(query);
+    const [historical_events, industry_reports] = await Promise.all([
+      searchHistoricalEvents(embedding, 3),
+      searchIndustryReports(embedding, 3),
+    ]);
+
+    res.json({
+      query,
+      embedding_dimensions: embedding.length,
+      historical_events,
+      industry_reports,
+    });
+  } catch (error) {
+    console.error('Vector search test failed:', error);
+    res.status(500).json({
+      error: error.message || 'Vector search test failed',
+      hint: 'Confirm both Atlas Vector Search indexes exist and are READY: historical_events_vector and industry_reports_vector.',
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`POST /api/analyze - Raw Gemini response (for testing)`);
   console.log(`POST /api/evaluate - Formatted response (for frontend)`);
   console.log(`GET /api/history - Recent persisted analyses`);
+  console.log(`GET /api/test-vector - Test MongoDB Atlas Vector Search`);
 });

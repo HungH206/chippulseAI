@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "node index.js",
+    "check-env": "node scripts/check-env.js",
     "seed": "node scripts/seed.js",
-    "test": "node --check index.js && node --check services/db.js && node --check services/gemini.js && node --check services/scoring.js && node --check scripts/seed.js"
+    "test": "node --check index.js && node --check services/db.js && node --check services/embeddings.js && node --check services/gemini.js && node --check services/scoring.js && node --check services/vectorSearch.js && node --check scripts/check-env.js && node --check scripts/seed.js"
   },
   "keywords": [],
   "author": "",

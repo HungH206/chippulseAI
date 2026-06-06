@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+const { getEmbedding } = require('./embeddings.js');
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB || 'chippulse';
@@ -60,6 +61,7 @@ async function getRecentAnalyses(limit = 10) {
           score_breakdown: 1,
           market_signals: 1,
           historical_matches: 1,
+          retrieval_metadata: 1,
           citations: 1,
           agent_activity: 1,
           evaluated_at: 1,
@@ -128,6 +130,41 @@ async function getHistoricalEventsForComponent(component, limit = 5) {
     .toArray();
 }
 
+async function searchHistoricalEvents(queryEmbedding, limit = 3) {
+  const database = await getDb();
+  if (!database) {
+    return [];
+  }
+
+  return database
+    .collection('historical_events')
+    .aggregate([
+      {
+        $vectorSearch: {
+          index: 'historical_events_vector',
+          path: 'embedding',
+          queryVector: queryEmbedding,
+          numCandidates: Math.max(20, limit * 5),
+          limit,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          embedding: 0,
+          created_at: 0,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
+    ])
+    .toArray();
+}
+
+async function getVectorHistoricalEvents(component, customSignal = '', limit = 3) {
+  const queryEmbedding = await getEmbedding(`${component} ${customSignal}`.trim());
+  return searchHistoricalEvents(queryEmbedding, limit);
+}
+
 async function getIndustryReports(limit = 3) {
   const database = await getDb();
   if (!database) {
@@ -171,11 +208,49 @@ async function getRelevantIndustryReports(component, limit = 3) {
     .toArray();
 }
 
+async function searchIndustryReports(queryEmbedding, limit = 3) {
+  const database = await getDb();
+  if (!database) {
+    return [];
+  }
+
+  return database
+    .collection('industry_reports')
+    .aggregate([
+      {
+        $vectorSearch: {
+          index: 'industry_reports_vector',
+          path: 'embedding',
+          queryVector: queryEmbedding,
+          numCandidates: Math.max(20, limit * 5),
+          limit,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          embedding: 0,
+          created_at: 0,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
+    ])
+    .toArray();
+}
+
+async function getVectorIndustryReports(component, customSignal = '', limit = 3) {
+  const queryEmbedding = await getEmbedding(`${component} ${customSignal}`.trim());
+  return searchIndustryReports(queryEmbedding, limit);
+}
+
 function mapEventsToHistoricalMatches(events, component) {
   return events.map((event, index) => ({
     title: event.title,
     year: event.year,
-    similarity: Math.max(68, 91 - index * 7),
+    score: typeof event.score === 'number' ? event.score : undefined,
+    similarity: typeof event.score === 'number'
+      ? Math.round(event.score * 100)
+      : Math.max(68, 91 - index * 7),
     impact: event.impact || 'Moderate',
     description: event.summary || `Historical market event relevant to ${component}.`,
   }));
@@ -202,6 +277,10 @@ module.exports = {
   getIndustryReports,
   getRelevantIndustryReports,
   getRecentAnalyses,
+  getVectorHistoricalEvents,
+  getVectorIndustryReports,
   mapEventsToHistoricalMatches,
   saveAnalysis,
+  searchHistoricalEvents,
+  searchIndustryReports,
 };

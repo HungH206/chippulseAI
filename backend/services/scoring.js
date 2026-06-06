@@ -87,8 +87,15 @@ function scoreHistoricalSimilarity(historicalMatches) {
     };
   }
 
-  const bestSimilarity = Math.max(...historicalMatches.map((match) => match.similarity || 0));
-  const score = clamp(Math.round((bestSimilarity / 100) * SCORE_CAPS.historicalSimilarity), 0, SCORE_CAPS.historicalSimilarity);
+  const similarityValues = historicalMatches.map((match) => {
+    if (typeof match.score === "number") {
+      return match.score;
+    }
+
+    return (match.similarity || 0) / 100;
+  });
+  const avgSimilarity = similarityValues.reduce((sum, value) => sum + value, 0) / similarityValues.length;
+  const score = clamp(Math.round(avgSimilarity * SCORE_CAPS.historicalSimilarity), 0, SCORE_CAPS.historicalSimilarity);
   const topMatches = historicalMatches
     .slice(0, 2)
     .map((match) => `${match.title} (${match.similarity}%)`)
@@ -97,7 +104,7 @@ function scoreHistoricalSimilarity(historicalMatches) {
   return {
     category: "Historical Similarity",
     score,
-    explanation: `MongoDB memory matched prior events: ${topMatches}.`,
+    explanation: `MongoDB memory matched prior events: ${topMatches}. Average similarity drove ${score}/${SCORE_CAPS.historicalSimilarity} points.`,
   };
 }
 
