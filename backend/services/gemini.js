@@ -24,6 +24,9 @@ async function analyzeDemand(component, customSignal = "", context = {}) {
     context.industryReports,
     (report) => `- ${report.report_id}: ${report.title} (${report.source}) - ${report.summary}`
   );
+  const deterministicScore = context.scoreContext
+    ? `\nDeterministic score calculated by the ChipPulse agent:\n${JSON.stringify(context.scoreContext, null, 2)}`
+    : "";
 
   const prompt = `You are ChipPulse AI, an expert in semiconductor and chip demand analysis.
 
@@ -35,10 +38,13 @@ ${historicalEvents}
 
 Use this MongoDB industry_reports context as persistent agent memory:
 ${industryReports}
+${deterministicScore}
+
+Do not invent or adjust the score. If a deterministic score is provided, copy that score exactly and explain the supplied score_breakdown.
 
 Return ONLY a valid JSON object (no markdown, no backticks, no extra text):
 {
-  "score": <number from 0-100>,
+  "score": <deterministic score number from 0-100>,
   "trend": "Increasing"|"Stable"|"Decreasing",
   "confidence": "High"|"Medium"|"Low",
   "explanation": "<brief 2-3 sentence analysis>",

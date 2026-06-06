@@ -56,6 +56,8 @@ async function getRecentAnalyses(limit = 10) {
           summary: 1,
           drivers: 1,
           recommendations: 1,
+          risk_band: 1,
+          score_breakdown: 1,
           market_signals: 1,
           historical_matches: 1,
           citations: 1,

@@ -9,6 +9,7 @@ const {
   mapEventsToHistoricalMatches,
   saveAnalysis,
 } = require('./services/db.js');
+const { calculateDemandScore } = require('./services/scoring.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,9 +56,17 @@ app.post('/api/evaluate', async (req, res) => {
 
     const historicalEvents = await getHistoricalEventsForComponent(component);
     const industryReports = await getRelevantIndustryReports(component);
+    const historicalMatches = mapEventsToHistoricalMatches(historicalEvents.slice(0, 3), component);
+    const scoreContext = calculateDemandScore({
+      component,
+      customSignal,
+      historicalMatches,
+      industryReports,
+    });
     const result = await analyzeDemand(component, customSignal, {
       historicalEvents,
       industryReports,
+      scoreContext,
     });
     console.log('Gemini raw response:', result.substring(0, 200));
     console.log('Response length:', result.length);
@@ -74,15 +83,14 @@ app.post('/api/evaluate', async (req, res) => {
       throw new Error(`Invalid JSON response from Gemini: ${parseErr.message}`);
     }
 
-    // Transform to complete EvaluationResult interface
-    const historicalMatches = mapEventsToHistoricalMatches(historicalEvents.slice(0, 3), component);
-
     const formattedResponse = {
       component,
-      demand_score: analysisData.score || 75,
+      demand_score: scoreContext.score,
+      risk_band: scoreContext.risk_band,
+      score_breakdown: scoreContext.score_breakdown,
       trend: analysisData.trend === 'Decreasing' ? 'Declining' : (analysisData.trend || 'Stable'),
       confidence: analysisData.confidence || 'Medium',
-      summary: analysisData.explanation || `Demand analysis for ${component}: score ${analysisData.score || 75}/100`,
+      summary: analysisData.explanation || `Demand analysis for ${component}: score ${scoreContext.score}/100`,
       drivers: analysisData.drivers || [],
       recommendations: analysisData.recommendations || [],
       
@@ -118,7 +126,8 @@ app.post('/api/evaluate', async (req, res) => {
           step: `Retrieved ${industryReports.length} industry ${industryReports.length === 1 ? 'report' : 'reports'}`,
           status: "completed",
         },
-        { step: "Generated Gemini demand forecast", status: "completed" },
+        { step: "Calculated deterministic demand score", status: "completed" },
+        { step: "Generated Gemini demand explanation", status: "completed" },
         { step: "Stored analysis in MongoDB", status: "completed" },
       ],
 

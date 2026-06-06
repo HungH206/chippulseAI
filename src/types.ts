@@ -24,9 +24,17 @@ export interface AgentStep {
   timestamp?: string;
 }
 
+export interface ScoreBreakdown {
+  category: string;
+  score: number;
+  explanation: string;
+}
+
 export interface EvaluationResult {
   component: string;
   demand_score: number;
+  risk_band?: "Stable" | "Watch" | "Elevated" | "High" | "Critical";
+  score_breakdown?: ScoreBreakdown[];
   trend: "Increasing" | "Declining" | "Stable";
   confidence: "High" | "Medium" | "Low";
   summary: string;

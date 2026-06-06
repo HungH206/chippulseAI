@@ -38,6 +38,21 @@ const WORKFLOW_PIPELINE: WorkflowStep[] = [
   { label: "Report Generated", description: "Compiling intelligence metrics, risk alerts, and strategic advisory." }
 ];
 
+const SCORE_CAPS: Record<string, number> = {
+  "Demand Pressure": 35,
+  "Supply Constraints": 30,
+  "Historical Similarity": 20,
+  "Market Signals": 15,
+};
+
+const getRiskBand = (score: number): "Stable" | "Watch" | "Elevated" | "High" | "Critical" => {
+  if (score <= 20) return "Stable";
+  if (score <= 40) return "Watch";
+  if (score <= 60) return "Elevated";
+  if (score <= 80) return "High";
+  return "Critical";
+};
+
 export default function App() {
   // Input states
   const [componentName, setComponentName] = useState<string>("");
@@ -219,23 +234,70 @@ export default function App() {
 
   // Simple clean analyst response generator for simulated fallback (prevents complete failure states)
   const generateAnalystFallback = (comp: string, signal: string): EvaluationResult => {
-    // Generate scores based on keyword analysis or random but realistic bounds
-    let score = 75;
     let trend = "Stable";
     let confidence = "Medium";
     
     const compLower = comp.toLowerCase();
+    const signalLower = signal.toLowerCase();
+    const combinedText = `${compLower} ${signalLower}`;
+    const hasAny = (terms: string[]) => terms.some((term) => combinedText.includes(term));
+
+    const demandPressure =
+      (hasAny(["ai datacenter", "datacenter", "data center", "cluster", "supercomputing"]) ? 15 : 0) +
+      (hasAny(["hyperscaler", "gpu", "nvidia", "blackwell", "h200", "hbm3", "mi325", "gaudi"]) ? 10 : 0) +
+      (hasAny(["enterprise ai", "inference", "training", "deployment", "adoption"]) ? 10 : 0);
+
+    const supplyConstraints =
+      (hasAny(["hbm", "memory", "shortage", "allocation", "fully allocated"]) ? 15 : 0) +
+      (hasAny(["cowos", "packaging", "interposer", "substrate", "abf", "bottleneck"]) ? 10 : 0) +
+      (hasAny(["foundry", "tsmc", "node", "wafer", "capacity", "lead time"]) ? 5 : 0);
+
+    const historicalSimilarity = hasAny(["hbm", "memory", "ddr", "nvidia", "blackwell", "gpu", "cowos"]) ? 18 : hasAny(["amd", "mi", "intel", "gaudi"]) ? 14 : 10;
+
+    const marketSignals =
+      (hasAny(["price", "pricing", "increase", "hike", "premium"]) ? 5 : 0) +
+      (hasAny(["lead time", "delay", "wait", "backlog", "extended"]) ? 5 : 0) +
+      (hasAny(["capacity reduction", "exit", "reallocat", "allocation", "constrained", "shortage"]) ? 5 : 0);
+
+    const scoreBreakdown = [
+      {
+        category: "Demand Pressure",
+        score: Math.min(35, demandPressure || (hasAny(["hbm", "memory", "gpu"]) ? 20 : 10)),
+        explanation: hasAny(["ai", "gpu", "datacenter", "training", "inference"])
+          ? "AI compute and accelerator demand signals are present."
+          : "Limited demand acceleration signals were found in the component text.",
+      },
+      {
+        category: "Supply Constraints",
+        score: Math.min(30, supplyConstraints),
+        explanation: supplyConstraints > 0
+          ? "The input references memory, packaging, foundry, or lead-time constraints."
+          : "No major sourcing constraint was detected in the input.",
+      },
+      {
+        category: "Historical Similarity",
+        score: historicalSimilarity,
+        explanation: "Fallback memory matched this request against prior HBM and AI infrastructure shortage patterns.",
+      },
+      {
+        category: "Market Signals",
+        score: Math.min(15, marketSignals),
+        explanation: signal
+          ? "User-supplied context was scored for pricing, lead-time, and capacity signals."
+          : "No custom market signal was supplied.",
+      },
+    ];
+    const score = scoreBreakdown.reduce((total, item) => total + item.score, 0);
+    const riskBand = getRiskBand(score);
+
     if (compLower.includes("nvidia") || compLower.includes("blackwell") || compLower.includes("h200") || compLower.includes("hbm3") || compLower.includes("cowos")) {
-      score = 94 + Math.floor(Math.random() * 5);
       trend = "Increasing";
       confidence = "High";
     } else if (compLower.includes("amd") || compLower.includes("mi") || compLower.includes("intel") || compLower.includes("gaudi")) {
-      score = 82 + Math.floor(Math.random() * 8);
       trend = "Increasing";
       confidence = "Medium";
     } else if (compLower.includes("ddr") || compLower.includes("nand") || compLower.includes("automotive") || compLower.includes("mcu")) {
-      score = 55 + Math.floor(Math.random() * 15);
-      trend = Math.random() > 0.5 ? "Stable" : "Declining";
+      trend = score >= 60 ? "Increasing" : "Stable";
     }
 
     const signalText = signal ? `Using custom industrial intelligence signal context: "${signal}".` : "Utilizing historical pricing models and automated inventory indexes.";
@@ -243,6 +305,8 @@ export default function App() {
     return {
       component: comp,
       demand_score: score,
+      risk_band: riskBand,
+      score_breakdown: scoreBreakdown,
       trend: trend as "Increasing" | "Declining" | "Stable",
       confidence: confidence as "High" | "Medium" | "Low",
       drivers: [
@@ -300,13 +364,16 @@ export default function App() {
 
   // Score color map styling helper
   const getScoreColorClass = (score: number) => {
-    if (score >= 90) return { text: "text-red-600 bg-red-50Border border-red-200", border: "border-red-500", radial: "#dc2626", bg: "bg-red-500" };
-    if (score >= 75) return { text: "text-amber-600 bg-amber-50Border border-amber-200", border: "border-amber-500", radial: "#d97706", bg: "bg-amber-500" };
-    if (score >= 50) return { text: "text-blue-600 bg-blue-50 border border-blue-200", border: "border-blue-500", radial: "#2563eb", bg: "bg-blue-500" };
+    if (score >= 81) return { text: "text-red-600 bg-red-50 border border-red-200", border: "border-red-500", radial: "#dc2626", bg: "bg-red-500" };
+    if (score >= 61) return { text: "text-amber-600 bg-amber-50 border border-amber-200", border: "border-amber-500", radial: "#d97706", bg: "bg-amber-500" };
+    if (score >= 41) return { text: "text-blue-600 bg-blue-50 border border-blue-200", border: "border-blue-500", radial: "#2563eb", bg: "bg-blue-500" };
+    if (score >= 21) return { text: "text-emerald-600 bg-emerald-50 border border-emerald-200", border: "border-emerald-500", radial: "#059669", bg: "bg-emerald-500" };
     return { text: "text-slate-600 bg-slate-50 border border-slate-200", border: "border-slate-400", radial: "#475569", bg: "bg-slate-500" };
   };
 
   const activeColor = currentResult ? getScoreColorClass(currentResult.demand_score) : { text: "text-slate-500", border: "border-slate-300", radial: "#475569", bg: "bg-slate-500" };
+
+  const currentRiskBand = currentResult ? (currentResult.risk_band || getRiskBand(currentResult.demand_score)) : "Stable";
 
   const formatLedgerDate = (isoDate?: string) => {
     if (!isoDate) return "Unknown";
@@ -767,11 +834,7 @@ export default function App() {
                           Score {currentResult.demand_score}/100
                         </div>
                       </div>
-                      <div className={`h-8 w-2 rounded-full ${
-                        currentResult.demand_score >= 90 ? "bg-red-500" :
-                        currentResult.demand_score >= 75 ? "bg-amber-500" :
-                        currentResult.demand_score >= 50 ? "bg-blue-500" : "bg-slate-500"
-                      }`}></div>
+                      <div className={`h-8 w-2 rounded-full ${activeColor.bg}`}></div>
                     </div>
                   </div>
                 </div>
@@ -805,14 +868,13 @@ export default function App() {
                       </div>
                     </div>
                     <span className={`text-[10px] uppercase tracking-wide px-2.5 py-0.5 mt-1.5 rounded-full font-bold font-mono ${
-                      currentResult.demand_score >= 90 ? "bg-red-100 text-red-700 border border-red-200" :
-                      currentResult.demand_score >= 75 ? "bg-amber-100 text-amber-700 border border-amber-200" :
-                      currentResult.demand_score >= 50 ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                      currentResult.demand_score >= 81 ? "bg-red-100 text-red-700 border border-red-200" :
+                      currentResult.demand_score >= 61 ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                      currentResult.demand_score >= 41 ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                      currentResult.demand_score >= 21 ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
                       "bg-slate-100 text-slate-700 border border-slate-200"
                     }`}>
-                      {currentResult.demand_score >= 90 ? "High Allocation Danger" :
-                       currentResult.demand_score >= 75 ? "Tight Demand Scale" :
-                       currentResult.demand_score >= 50 ? "Balanced Market" : "Sufficient Stock"}
+                      {currentRiskBand.toUpperCase()} DEMAND PRESSURE
                     </span>
                   </div>
 
@@ -907,6 +969,27 @@ export default function App() {
                   
                   {activeTab === "summary" && (
                     <div className="space-y-4">
+                      {currentResult.score_breakdown && currentResult.score_breakdown.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {currentResult.score_breakdown.map((item) => {
+                            const maxScore = SCORE_CAPS[item.category] || 100;
+                            const width = `${Math.min(100, Math.round((item.score / maxScore) * 100))}%`;
+
+                            return (
+                              <div key={item.category} className="border border-slate-200 rounded-lg bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-[11px] font-mono font-bold uppercase tracking-wide text-slate-700">{item.category}</span>
+                                  <span className="text-xs font-mono font-bold text-slate-900">{item.score}/{maxScore}</span>
+                                </div>
+                                <div className="h-1.5 bg-white border border-slate-200 rounded-full overflow-hidden my-2">
+                                  <div className={`h-full ${activeColor.bg}`} style={{ width }}></div>
+                                </div>
+                                <p className="text-xs text-slate-600 leading-relaxed">{item.explanation}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed font-sans font-normal">
                         {currentResult.summary.split("\n\n").map((para, idx) => {
                           if (para.startsWith("###")) {
@@ -1051,9 +1134,10 @@ export default function App() {
                       <td className="py-3 font-semibold text-slate-900 max-w-[180px] truncate">{hist.component}</td>
                       <td className="py-3 text-center">
                         <span className={`inline-block w-8 py-0.5 rounded font-mono font-bold text-xs ${
-                          hist.demand_score >= 90 ? "bg-red-50 text-red-700" :
-                          hist.demand_score >= 75 ? "bg-amber-50 text-amber-700" :
-                          hist.demand_score >= 50 ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-700"
+                          hist.demand_score >= 81 ? "bg-red-50 text-red-700" :
+                          hist.demand_score >= 61 ? "bg-amber-50 text-amber-700" :
+                          hist.demand_score >= 41 ? "bg-blue-50 text-blue-700" :
+                          hist.demand_score >= 21 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
                         }`}>
                           {hist.demand_score}
                         </span>
@@ -1120,9 +1204,11 @@ export default function App() {
                       />
                       <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={32}>
                         {chartData.map((entry, index) => {
-                          let color = "#3b82f6"; // default blue
-                          if (entry.score >= 90) color = "#ef4444"; // red
-                          else if (entry.score >= 75) color = "#f59e0b"; // amber
+                          let color = "#64748b";
+                          if (entry.score >= 81) color = "#ef4444";
+                          else if (entry.score >= 61) color = "#f59e0b";
+                          else if (entry.score >= 41) color = "#3b82f6";
+                          else if (entry.score >= 21) color = "#10b981";
                           return <Cell key={`cell-${index}`} fill={color} />;
                         })}
                       </Bar>
