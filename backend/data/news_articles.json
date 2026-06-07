@@ -43,5 +43,14 @@
     "url": "https://www.tomshardware.com/tech-industry/semiconductors/samsung-shows-first-hbm5-mockup-at-computex-with-heat-path-block-cooling",
     "category": "memory",
     "summary": "Samsung displayed HBM5 technology work, underscoring continued competition and investment in AI-oriented high-bandwidth memory."
+  },
+  {
+    "article_id": "news_apple_m4_mac_mini_stockout_2026",
+    "title": "Apple Can't Seem to Keep Mac Minis in Stock As Demand Heats Up",
+    "source": "Business Insider",
+    "published_at": "2026-04-24",
+    "url": "https://www.businessinsider.com/apple-599-m4-mac-mini-sold-out-online-us-demand-2026-4",
+    "category": "client",
+    "summary": "Business Insider reported that Apple's base M4 Mac Mini sold out online in the US, with some configurations showing long wait times as memory demand and local AI use cases supported stronger consumer hardware demand."
   }
 ]

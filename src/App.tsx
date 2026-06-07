@@ -19,23 +19,23 @@ import {
   Check,
   Terminal
 } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import DemandBenchmarkGraph from "./Graph";
 import { PRESET_COMPONENTS, SUGGESTED_SIGNALS, getPresetResult } from "./presets";
 import type { EvaluationResult } from "./types";
 
 interface WorkflowStep {
   label: string;
   description: string;
+  tag: string;
 }
 
 const WORKFLOW_PIPELINE: WorkflowStep[] = [
-  { label: "User Request Received", description: "Parsing component specifications & industrial request payload." },
-  { label: "Agent Builder Triggered", description: "Assembling customized microchip agent context pipelines." },
-  { label: "MongoDB MCP Query", description: "Interrogating localized market database and raw inventory levels." },
-  { label: "Vector Search Retrieval", description: "Retrieving historical trends and semantic embedding parameters." },
-  { label: "Historical Event Matching", description: "Analyzing lead-time curves and supply shortage events." },
-  { label: "Gemini Demand Analysis", description: "Invoking deep Gemini-3.5-Flash with internet search grounding." },
-  { label: "Report Generated", description: "Compiling intelligence metrics, risk alerts, and strategic advisory." }
+  { label: "User Request Received", tag: "ADK", description: "Parsing component and market-signal payload for the ChipPulse agent." },
+  { label: "retrieve_historical_events", tag: "Tool", description: "Calling backend vector search over MongoDB historical_events memory." },
+  { label: "retrieve_industry_reports", tag: "Tool", description: "Calling backend vector search over MongoDB industry_reports memory." },
+  { label: "retrieve_recent_news", tag: "Tool", description: "Calling backend vector search over MongoDB news_articles live-signal memory." },
+  { label: "evaluate_component", tag: "Tool", description: "Running ChipPulse scoring, Gemini synthesis, citations, and MongoDB persistence." },
+  { label: "Report Generated", tag: "Done", description: "Returning demand score, score breakdown, retrieval evidence, and recommendations." }
 ];
 
 const SCORE_CAPS: Record<string, number> = {
@@ -159,21 +159,18 @@ export default function App() {
     try {
       // Step 0: User Request Received - Active
       await delay(600);
-      setActiveWorkflowStep(1); // Step 1: Agent Builder Triggered
+      setActiveWorkflowStep(1); // retrieve_historical_events
 
       await delay(600);
-      setActiveWorkflowStep(2); // Step 2: MongoDB MCP Query
+      setActiveWorkflowStep(2); // retrieve_industry_reports
 
       await delay(700);
-      setActiveWorkflowStep(3); // Step 3: Vector Search Retrieval
+      setActiveWorkflowStep(3); // retrieve_recent_news
 
       await delay(700);
-      setActiveWorkflowStep(4); // Step 4: Historical Event Matching
+      setActiveWorkflowStep(4); // evaluate_component
 
-      await delay(600);
-      setActiveWorkflowStep(5); // Step 5: Gemini Demand Analysis
-
-      // Fire off the API call in parallel during step 5
+      // Fire off the API call during evaluate_component.
       let apiResult: EvaluationResult | null = null;
       let apiErrorInstance: any = null;
 
@@ -201,9 +198,9 @@ export default function App() {
         apiErrorInstance = err;
       }
 
-      // Keep it on Gemini Analysis for slightly more duration to feel highly robust 
+      // Keep it on evaluate_component for slightly more duration to reflect Gemini synthesis and persistence.
       await delay(800);
-      setActiveWorkflowStep(6); // Step 6: Report Generated
+      setActiveWorkflowStep(5); // Report Generated
 
       await delay(600); // Complete state showing
 
@@ -390,12 +387,15 @@ export default function App() {
   };
 
   // Prepare chart data from active history
-  const chartData = historyList.map((item) => ({
-    name: item.component.replace("NVIDIA", "NV").replace("SK Hynix", "SK").replace("Advanced Packaging", "Pkg").slice(0, 16),
+  const chartData = historyList.slice(0, 8).map((item) => ({
+    name: item.component.replace("NVIDIA", "NV").replace("SK Hynix", "SK").replace("Advanced Packaging", "Pkg").slice(0, 22),
     score: item.demand_score,
     trend: item.trend,
-    fullName: item.component
-  })).reverse();
+    risk: item.risk_band || getRiskBand(item.demand_score),
+    fullName: item.component,
+    vector: item.vector_search_used,
+    news: item.news_articles_retrieved || 0,
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased pb-20">
@@ -448,7 +448,7 @@ export default function App() {
             <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
             <div className="bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-2">
               <Brain className="h-3.5 w-3.5 text-blue-400" />
-              <span className="font-mono text-[11px]">Gemini-3.5-Flash</span>
+              <span className="font-mono text-[11px]">Gemini-2.5-Flash</span>
             </div>
           </div>
 
@@ -729,7 +729,7 @@ export default function App() {
                             </span>
                             {isActive && (
                               <span className="text-[9px] font-mono bg-blue-500/10 text-blue-300 px-1.5 rounded uppercase font-bold animate-pulse">
-                                Executing MCP
+                                {stepItem.tag}
                               </span>
                             )}
                           </div>
@@ -749,7 +749,7 @@ export default function App() {
                 {/* Mini System Log Term at bottom */}
                 <div className="mt-6 bg-black/40 border border-slate-800 rounded-xl p-3 font-mono text-[10px] text-slate-400 space-y-1">
                   <div className="flex justify-between text-slate-500 border-b border-slate-800/60 pb-1 mb-1.5">
-                    <span>MCP STREAM ENGINE</span>
+                    <span>ADK TOOL TRACE</span>
                     <span>ONLINE</span>
                   </div>
                   <div className="text-emerald-400/90 flex gap-1.5 leading-relaxed">
@@ -759,19 +759,19 @@ export default function App() {
                   {activeWorkflowStep >= 2 && (
                     <div className="text-blue-300/90 flex gap-1.5">
                       <span className="text-blue-400">» [MONGODB]</span>
-                      <span>Connection active. Interrogated 64 distinct storage vectors & foundries schema.</span>
+                      <span>Atlas Vector Search returned historical events, reports, and live news signals.</span>
                     </div>
                   )}
                   {activeWorkflowStep >= 4 && (
                     <div className="text-amber-400/90 flex gap-1.5">
-                      <span className="text-blue-400">» [ANALYSIS]</span>
-                      <span>Applying regression logic over 2018-2022 pricing inflection metrics.</span>
+                      <span className="text-blue-400">» [BACKEND]</span>
+                      <span>evaluate_component is scoring demand pressure and storing analysis memory.</span>
                     </div>
                   )}
                   {activeWorkflowStep >= 5 && (
                     <div className="text-sky-300/90 flex gap-1.5">
                       <span className="text-blue-400">» [GEMINI]</span>
-                      <span>Resolving search grounding tokens. Weighing prompt heuristics.</span>
+                      <span>Gemini synthesis uses retrieved MongoDB evidence and deterministic score context.</span>
                     </div>
                   )}
                 </div>
@@ -1112,115 +1112,79 @@ export default function App() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* Table comparison database of chips */}
-            <div className="lg:col-span-6 overflow-x-auto">
-              <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">Recent Analyses</span>
-              <table className="w-full text-left font-sans text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 font-mono text-[10px] uppercase">
-                    <th className="pb-2.5 font-semibold">Component</th>
-                    <th className="pb-2.5 font-semibold text-center">Score</th>
-                    <th className="pb-2.5 font-semibold text-center">Date</th>
-                    <th className="pb-2.5 font-semibold text-center">Trend</th>
-                    <th className="pb-2.5 font-semibold text-center">Confidence</th>
-                    <th className="pb-2.5 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {historyList.map((hist, i) => (
-                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 font-semibold text-slate-900 max-w-[180px] truncate">{hist.component}</td>
-                      <td className="py-3 text-center">
-                        <span className={`inline-block w-8 py-0.5 rounded font-mono font-bold text-xs ${
-                          hist.demand_score >= 81 ? "bg-red-50 text-red-700" :
-                          hist.demand_score >= 61 ? "bg-amber-50 text-amber-700" :
-                          hist.demand_score >= 41 ? "bg-blue-50 text-blue-700" :
-                          hist.demand_score >= 21 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                        }`}>
-                          {hist.demand_score}
-                        </span>
-                      </td>
-                      <td className="py-3 text-center font-mono text-[10px] text-slate-500">{formatLedgerDate(hist.evaluated_at)}</td>
-                      <td className="py-3 text-center">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono capitalize ${
-                          hist.trend.toLowerCase() === "increasing" ? "bg-emerald-50 text-emerald-700" :
-                          hist.trend.toLowerCase() === "declining" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-700"
-                        }`}>
-                          {hist.trend}
-                        </span>
-                      </td>
-                      <td className="py-3 text-center font-mono text-[10px]">{hist.confidence}</td>
-                      <td className="py-3 text-right">
+            {/* Compact analyzed component ledger */}
+            <div className="lg:col-span-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider">Analyzed Component Ledger</span>
+                <span className="text-[10px] font-mono text-slate-400">{historyList.length} stored</span>
+              </div>
+              <div className="border border-slate-200 rounded-xl bg-slate-50/70 p-3">
+                {historyList.length > 0 ? (
+                  <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1">
+                    {historyList.map((hist, i) => {
+                      const selected = currentResult?.component.toLowerCase() === hist.component.toLowerCase();
+                      const risk = hist.risk_band || getRiskBand(hist.demand_score);
+                      const evidenceCount =
+                        (hist.historical_events_retrieved || hist.retrieval_metadata?.historical_events_retrieved || 0) +
+                        (hist.industry_reports_retrieved || hist.retrieval_metadata?.industry_reports_retrieved || 0) +
+                        (hist.news_articles_retrieved || hist.retrieval_metadata?.news_articles_retrieved || 0);
+                      const width = `${Math.min(100, Math.max(2, hist.demand_score))}%`;
+
+                      return (
                         <button
+                          key={`${hist.component}-${hist.evaluated_at || i}`}
                           onClick={() => {
                             setCurrentResult(hist);
                             setComponentName(hist.component);
                           }}
-                          className="text-blue-600 hover:text-blue-800 font-semibold font-mono text-[11px] underline"
+                          className={`snap-start shrink-0 w-[230px] text-left rounded-lg border p-3 transition-all ${
+                            selected
+                              ? "bg-slate-900 border-slate-900 text-white shadow-sm"
+                              : "bg-white border-slate-200 text-slate-800 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
                         >
-                          View Report
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-xs truncate">{hist.component}</div>
+                              <div className={`mt-0.5 text-[10px] font-mono ${selected ? "text-slate-300" : "text-slate-500"}`}>
+                                {formatLedgerDate(hist.evaluated_at)} / {hist.trend}
+                              </div>
+                            </div>
+                            <div className={`text-lg font-black font-mono leading-none ${
+                              selected ? "text-blue-300" : hist.demand_score >= 81 ? "text-red-600" : hist.demand_score >= 61 ? "text-amber-600" : "text-blue-600"
+                            }`}>
+                              {hist.demand_score}
+                            </div>
+                          </div>
+
+                          <div className={`h-1.5 rounded-full overflow-hidden mt-3 ${selected ? "bg-slate-700" : "bg-slate-100"}`}>
+                            <div className={`h-full ${
+                              hist.demand_score >= 81 ? "bg-red-500" :
+                              hist.demand_score >= 61 ? "bg-amber-500" :
+                              hist.demand_score >= 41 ? "bg-blue-500" :
+                              hist.demand_score >= 21 ? "bg-emerald-500" : "bg-slate-500"
+                            }`} style={{ width }}></div>
+                          </div>
+
+                          <div className={`mt-3 flex items-center justify-between text-[10px] font-mono ${selected ? "text-slate-300" : "text-slate-500"}`}>
+                            <span>{risk}</span>
+                            <span>{evidenceCount} evidence</span>
+                          </div>
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {historyList.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 italic font-mono text-xs">
-                        No previous evaluation sequences captured in history ledger.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center text-slate-400 italic font-mono text-xs">
+                    No previous evaluation sequences captured in history ledger.
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Recharts Bar Comparison Chart */}
-            <div className="lg:col-span-6 border border-slate-200 p-4 rounded-xl bg-slate-50/50 min-h-72 flex flex-col">
-              <span className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">Benchmarking Matrix (0-100 Demand Scale)</span>
-              
-              {chartData.length > 0 ? (
-                <div className="flex-1 min-h-48 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 9, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-                      <YAxis domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 9, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-slate-900 border border-slate-800 text-white rounded-lg p-2.5 text-xs font-mono space-y-1">
-                                <p className="font-bold font-sans">{data.fullName}</p>
-                                <p className="text-blue-300">Pressure Index: {data.score}</p>
-                                <p className="text-emerald-400">Trend Mode: {data.trend}</p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={32}>
-                        {chartData.map((entry, index) => {
-                          let color = "#64748b";
-                          if (entry.score >= 81) color = "#ef4444";
-                          else if (entry.score >= 61) color = "#f59e0b";
-                          else if (entry.score >= 41) color = "#3b82f6";
-                          else if (entry.score >= 21) color = "#10b981";
-                          return <Cell key={`cell-${index}`} fill={color} />;
-                        })}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="flex-1 min-h-48 flex items-center justify-center text-slate-400 italic text-xs font-mono">
-                  Synthesize an evaluation run to populate chart benchmark matrices.
-                </div>
-              )}
-            </div>
+            <DemandBenchmarkGraph data={chartData} />
 
           </div>
 
