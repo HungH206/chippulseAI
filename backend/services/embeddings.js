@@ -1,7 +1,8 @@
 const { GoogleGenAI } = require("@google/genai");
+const { getGeminiApiKey } = require("./config.js");
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: getGeminiApiKey(),
 });
 
 const EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
@@ -24,8 +25,8 @@ function extractEmbeddingValues(response) {
 }
 
 async function getEmbedding(text) {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is required to generate embeddings.");
+  if (!getGeminiApiKey()) {
+    throw new Error("GEMINI_API_KEY or GOOGLE_API_KEY is required to generate embeddings.");
   }
 
   const response = await ai.models.embedContent({

@@ -186,6 +186,66 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
+app.post('/api/retrieve-events', async (req, res) => {
+  try {
+    const { component, customSignal } = req.body;
+
+    if (!component) {
+      return res.status(400).json({ error: 'component field is required' });
+    }
+
+    const embedding = await getEmbedding(`${component} ${customSignal || ''}`.trim());
+    const historical_events = await searchHistoricalEvents(embedding, 3);
+
+    res.json({
+      component,
+      retrieval_metadata: {
+        historical_events_retrieved: historical_events.length,
+        vector_search_used: true,
+        retrieval_mode: 'Atlas Vector Search',
+        historical_events_index: process.env.MONGODB_HISTORICAL_EVENTS_VECTOR_INDEX || 'historical_events_vector',
+      },
+      historical_events,
+    });
+  } catch (error) {
+    console.error('Historical event retrieval failed:', error);
+    res.status(500).json({
+      error: error.message || 'Historical event retrieval failed',
+      hint: 'Confirm the historical_events_vector Atlas Vector Search index exists and is READY.',
+    });
+  }
+});
+
+app.post('/api/retrieve-reports', async (req, res) => {
+  try {
+    const { component, customSignal } = req.body;
+
+    if (!component) {
+      return res.status(400).json({ error: 'component field is required' });
+    }
+
+    const embedding = await getEmbedding(`${component} ${customSignal || ''}`.trim());
+    const industry_reports = await searchIndustryReports(embedding, 3);
+
+    res.json({
+      component,
+      retrieval_metadata: {
+        industry_reports_retrieved: industry_reports.length,
+        vector_search_used: true,
+        retrieval_mode: 'Atlas Vector Search',
+        industry_reports_index: process.env.MONGODB_INDUSTRY_REPORTS_VECTOR_INDEX || 'industry_reports_index',
+      },
+      industry_reports,
+    });
+  } catch (error) {
+    console.error('Industry report retrieval failed:', error);
+    res.status(500).json({
+      error: error.message || 'Industry report retrieval failed',
+      hint: 'Confirm the industry reports Atlas Vector Search index exists and is READY.',
+    });
+  }
+});
+
 app.get('/api/test-vector', async (req, res) => {
   try {
     const query = req.query.q || 'Apple M4 Mac Mini demand';
@@ -215,5 +275,7 @@ app.listen(PORT, () => {
   console.log(`POST /api/analyze - Raw Gemini response (for testing)`);
   console.log(`POST /api/evaluate - Formatted response (for frontend)`);
   console.log(`GET /api/history - Recent persisted analyses`);
+  console.log(`POST /api/retrieve-events - Retrieve vector historical events`);
+  console.log(`POST /api/retrieve-reports - Retrieve vector industry reports`);
   console.log(`GET /api/test-vector - Test MongoDB Atlas Vector Search`);
 });

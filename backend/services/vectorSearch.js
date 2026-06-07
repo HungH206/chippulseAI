@@ -8,7 +8,7 @@ const INDUSTRY_REPORTS_VECTOR_INDEX =
 async function searchHistoricalEvents(queryEmbedding, limit = 3) {
   const db = await getDb();
   if (!db) {
-    return [];
+    throw new Error('MONGODB_URI is required for Atlas Vector Search.');
   }
 
   return db
@@ -41,7 +41,7 @@ async function searchHistoricalEvents(queryEmbedding, limit = 3) {
 async function searchIndustryReports(queryEmbedding, limit = 3) {
   const db = await getDb();
   if (!db) {
-    return [];
+    throw new Error('MONGODB_URI is required for Atlas Vector Search.');
   }
 
   return db
