@@ -23,6 +23,7 @@ GEMINI_EMBEDDING_MODEL=gemini-embedding-001
 GEMINI_EMBEDDING_DIMENSIONS=768
 MONGODB_HISTORICAL_EVENTS_VECTOR_INDEX=historical_events_vector
 MONGODB_INDUSTRY_REPORTS_VECTOR_INDEX=industry_reports_index
+MONGODB_NEWS_ARTICLES_VECTOR_INDEX=news_articles_vector
 ```
 
 Restore the file from the example, then edit values locally:

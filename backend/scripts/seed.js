@@ -4,9 +4,11 @@ const {
   getEmbedding,
   historicalEventEmbeddingText,
   industryReportEmbeddingText,
+  newsArticleEmbeddingText,
 } = require('../services/embeddings.js');
 const historicalEvents = require('../data/historical_events.json');
 const industryReports = require('../data/industry_reports.json');
+const newsArticles = require('../data/news_articles.json');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -47,6 +49,14 @@ async function withIndustryReportEmbedding(report, seededAt) {
   return { ...report, embedding, created_at: seededAt };
 }
 
+async function withNewsArticleEmbedding(article, seededAt) {
+  const embedding = await getEmbeddingWithRetry(
+    newsArticleEmbeddingText(article),
+    article.article_id
+  );
+  return { ...article, embedding, created_at: seededAt };
+}
+
 async function mapSequential(items, mapper) {
   const results = [];
 
@@ -74,12 +84,18 @@ async function seed() {
     industryReports,
     (report) => withIndustryReportEmbedding(report, seededAt)
   );
+  const newsArticlesWithEmbeddings = await mapSequential(
+    newsArticles,
+    (article) => withNewsArticleEmbedding(article, seededAt)
+  );
 
   await db.collection('historical_events').deleteMany({});
   await db.collection('industry_reports').deleteMany({});
+  await db.collection('news_articles').deleteMany({});
 
   await db.collection('historical_events').insertMany(historicalEventsWithEmbeddings);
   await db.collection('industry_reports').insertMany(industryReportsWithEmbeddings);
+  await db.collection('news_articles').insertMany(newsArticlesWithEmbeddings);
 
   await db.collection('analyses').createIndex({ evaluated_at: -1 });
   await db.collection('historical_events').createIndex({ event_id: 1 }, { unique: true });
@@ -87,11 +103,15 @@ async function seed() {
   await db.collection('industry_reports').createIndex({ report_id: 1 }, { unique: true });
   await db.collection('industry_reports').createIndex({ title: 1 });
   await db.collection('industry_reports').createIndex({ category: 1 });
+  await db.collection('news_articles').createIndex({ article_id: 1 }, { unique: true });
+  await db.collection('news_articles').createIndex({ published_at: -1 });
+  await db.collection('news_articles').createIndex({ category: 1 });
 
   console.log(`Seeded ${historicalEvents.length} historical events.`);
   console.log(`Seeded ${industryReports.length} industry reports.`);
+  console.log(`Seeded ${newsArticles.length} news articles.`);
   console.log(`Embedding dimensions: ${historicalEventsWithEmbeddings[0].embedding.length}`);
-  console.log('Create Atlas Vector Search indexes on embedding with cosine similarity: historical_events_vector and industry_reports_vector.');
+  console.log('Create Atlas Vector Search indexes on embedding with cosine similarity: historical_events_vector, industry_reports_index, and news_articles_vector.');
   console.log('Database ready: chippulse');
 }
 

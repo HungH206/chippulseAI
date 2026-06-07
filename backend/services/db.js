@@ -62,6 +62,12 @@ async function getRecentAnalyses(limit = 10) {
           market_signals: 1,
           historical_matches: 1,
           retrieval_metadata: 1,
+          vector_search_used: 1,
+          historical_events_retrieved: 1,
+          industry_reports_retrieved: 1,
+          news_articles_retrieved: 1,
+          retrieval_mode: 1,
+          agent_version: 1,
           citations: 1,
           agent_activity: 1,
           evaluated_at: 1,
@@ -208,6 +214,20 @@ async function getRelevantIndustryReports(component, limit = 3) {
     .toArray();
 }
 
+async function getRecentNewsArticles(limit = 4) {
+  const database = await getDb();
+  if (!database) {
+    return [];
+  }
+
+  return database
+    .collection('news_articles')
+    .find({}, { projection: { _id: 0, embedding: 0, created_at: 0 } })
+    .sort({ published_at: -1, created_at: -1 })
+    .limit(limit)
+    .toArray();
+}
+
 async function searchIndustryReports(queryEmbedding, limit = 3) {
   const database = await getDb();
   if (!database) {
@@ -276,6 +296,7 @@ module.exports = {
   getHistoricalMatches,
   getIndustryReports,
   getRelevantIndustryReports,
+  getRecentNewsArticles,
   getRecentAnalyses,
   getVectorHistoricalEvents,
   getVectorIndustryReports,

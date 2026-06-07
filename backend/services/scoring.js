@@ -108,8 +108,8 @@ function scoreHistoricalSimilarity(historicalMatches) {
   };
 }
 
-function scoreMarketSignals(customSignal) {
-  const text = customSignal.toLowerCase();
+function scoreMarketSignals(customSignal, newsArticles = []) {
+  const text = `${customSignal} ${newsArticles.map((article) => `${article.title} ${article.summary}`).join(" ")}`.toLowerCase();
   let score = 0;
   const reasons = [];
 
@@ -131,7 +131,7 @@ function scoreMarketSignals(customSignal) {
   return {
     category: "Market Signals",
     score: clamp(score, 0, SCORE_CAPS.marketSignals),
-    explanation: reasons.length > 0 ? reasons.join(" ") : "No user-supplied pricing, lead-time, or capacity signal was detected.",
+      explanation: reasons.length > 0 ? reasons.join(" ") : "No pricing, lead-time, capacity, or news signal was detected.",
   };
 }
 
@@ -143,12 +143,12 @@ function getRiskBand(score) {
   return "Critical";
 }
 
-function calculateDemandScore({ component, customSignal = "", historicalMatches = [], industryReports = [] }) {
+function calculateDemandScore({ component, customSignal = "", historicalMatches = [], industryReports = [], newsArticles = [] }) {
   const scoreBreakdown = [
     scoreDemandPressure(component, customSignal, industryReports),
     scoreSupplyConstraints(component, customSignal, industryReports),
     scoreHistoricalSimilarity(historicalMatches),
-    scoreMarketSignals(customSignal),
+    scoreMarketSignals(customSignal, newsArticles),
   ];
   const score = clamp(scoreBreakdown.reduce((total, item) => total + item.score, 0), 0, 100);
 

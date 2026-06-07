@@ -64,8 +64,21 @@ function industryReportEmbeddingText(report) {
     .join(" ");
 }
 
+function newsArticleEmbeddingText(article) {
+  return [
+    article.title,
+    article.summary,
+    article.source,
+    article.category,
+    article.published_at,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 module.exports = {
   getEmbedding,
   historicalEventEmbeddingText,
   industryReportEmbeddingText,
+  newsArticleEmbeddingText,
 };

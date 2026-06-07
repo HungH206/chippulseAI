@@ -25,6 +25,10 @@ async function analyzeDemand(component, customSignal = "", context = {}) {
     context.industryReports,
     (report) => `- ${report.report_id}: ${report.title} (${report.source}) - ${report.summary}`
   );
+  const newsArticles = formatContextList(
+    context.newsArticles,
+    (article) => `- ${article.title} (${article.source}, ${article.published_at}) - ${article.summary} ${article.url ? `Source URL: ${article.url}` : ""}`
+  );
   const deterministicScore = context.scoreContext
     ? `\nDeterministic score calculated by the ChipPulse agent:\n${JSON.stringify(context.scoreContext, null, 2)}`
     : "";
@@ -39,6 +43,9 @@ ${historicalEvents}
 
 Use this MongoDB industry_reports context as persistent agent memory:
 ${industryReports}
+
+Use this MongoDB news_articles context as current market signal memory:
+${newsArticles}
 ${deterministicScore}
 
 Do not invent or adjust the score. If a deterministic score is provided, copy that score exactly and explain the supplied score_breakdown.

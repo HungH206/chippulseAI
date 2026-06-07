@@ -76,6 +76,19 @@ def retrieve_industry_reports(component: str, custom_signal: Optional[str] = Non
     )
 
 
+def retrieve_recent_news(component: str, custom_signal: Optional[str] = None) -> Dict[str, Any]:
+    """Retrieve recent market news articles from MongoDB Atlas Vector Search."""
+
+    return _request_json(
+        "POST",
+        "/api/retrieve-news",
+        json={
+            "component": component,
+            "customSignal": custom_signal or "",
+        },
+    )
+
+
 def evaluate_component(component: str, custom_signal: Optional[str] = None) -> Dict[str, Any]:
     """Generate and store a semiconductor demand analysis using ChipPulse backend scoring."""
 

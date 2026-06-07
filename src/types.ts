@@ -2,6 +2,9 @@ export interface MarketSignal {
   title: string;
   signal: string;
   relevance: "High" | "Medium" | "Low";
+  source?: string;
+  url?: string;
+  published_at?: string;
 }
 
 export interface HistoricalMatch {
@@ -15,8 +18,10 @@ export interface HistoricalMatch {
 
 export interface Citation {
   title: string;
-  source: string;
+  source?: string;
+  type?: "historical_event" | "industry_report" | "news_article";
   url?: string;
+  published_at?: string;
 }
 
 export interface AgentStep {
@@ -34,10 +39,18 @@ export interface ScoreBreakdown {
 export interface RetrievalMetadata {
   historical_events_retrieved: number;
   industry_reports_retrieved: number;
+  news_articles_retrieved?: number;
   vector_search_used: boolean;
+  historical_events_vector_search_used?: boolean;
+  industry_reports_vector_search_used?: boolean;
+  news_articles_vector_search_used?: boolean;
   retrieval_mode?: string;
+  historical_events_retrieval_mode?: string;
+  industry_reports_retrieval_mode?: string;
+  news_articles_retrieval_mode?: string;
   historical_events_index?: string | null;
   industry_reports_index?: string | null;
+  news_articles_index?: string | null;
 }
 
 export interface EvaluationResult {
@@ -53,6 +66,12 @@ export interface EvaluationResult {
   market_signals: MarketSignal[];
   historical_matches: HistoricalMatch[];
   retrieval_metadata?: RetrievalMetadata;
+  vector_search_used?: boolean;
+  historical_events_retrieved?: number;
+  industry_reports_retrieved?: number;
+  news_articles_retrieved?: number;
+  retrieval_mode?: string;
+  agent_version?: string;
   citations: Citation[];
   agent_activity: AgentStep[];
   evaluated_at: string;

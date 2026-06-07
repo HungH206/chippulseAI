@@ -1,0 +1,47 @@
+[
+  {
+    "article_id": "news_memory_shortage_trade_groups_2026",
+    "title": "AI Data Center Memory Demand Raises Shortage Concerns",
+    "source": "Tom's Hardware",
+    "published_at": "2026-06-05",
+    "url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/industry-coalition-urges-trump-administration-to-take-urgent-action-as-ai-data-centers-extreme-memory-consumption-threatens-other-industries-ai-driven-memory-chip-shortage-could-raise-prices-in-automotive-medical-telecommunications-sectors",
+    "category": "memory",
+    "summary": "Industry groups warned that AI data center deployments are consuming a growing share of memory output, increasing shortage and pricing risk for downstream sectors."
+  },
+  {
+    "article_id": "news_ddr4_restart_ddr5_pressure_2026",
+    "title": "PC Industry Reconsiders DDR4 as DDR5 Supply Tightens",
+    "source": "Tom's Hardware",
+    "published_at": "2026-06-04",
+    "url": "https://www.tomshardware.com/pc-components/ram/production-of-ddr4-memory-and-motherboards-is-restarting-amid-unprecedented-memory-shortages-pc-industry-preparing-for-a-world-without-ddr5",
+    "category": "memory",
+    "summary": "PC component vendors are preparing more DDR4 products as AI demand tightens DDR5 availability and reshapes consumer memory supply planning."
+  },
+  {
+    "article_id": "news_skhynix_capacity_2026",
+    "title": "SK hynix Plans Major Memory Capacity Expansion",
+    "source": "Tom's Hardware",
+    "published_at": "2026-06-02",
+    "url": "https://www.tomshardware.com/pc-components/dram/sk-hynix-to-double-memory-wafer-capacity-over-five-years",
+    "category": "memory",
+    "summary": "SK hynix signaled plans to expand wafer capacity over several years while indicating AI-driven memory tightness may persist."
+  },
+  {
+    "article_id": "news_tsmc_capacity_demand_2026",
+    "title": "TSMC Says Customer Demand Will Take Time to Satisfy",
+    "source": "Tom's Hardware",
+    "published_at": "2026-06-05",
+    "url": "https://www.tomshardware.com/tech-industry/semiconductors/tsmc-ceo-c-c-wei-says-it-will-be-a-long-time-before-we-can-meet-customer-demand-tells-shareholders-that-he-will-keep-prices-stable-refrain-from-implementing-price-hikes",
+    "category": "foundry",
+    "summary": "TSMC leadership indicated that customer demand remains difficult to satisfy, reinforcing capacity pressure across advanced semiconductor supply chains."
+  },
+  {
+    "article_id": "news_samsung_hbm5_2026",
+    "title": "Samsung Shows HBM5 Mockup as AI Memory Competition Intensifies",
+    "source": "Tom's Hardware",
+    "published_at": "2026-06-04",
+    "url": "https://www.tomshardware.com/tech-industry/semiconductors/samsung-shows-first-hbm5-mockup-at-computex-with-heat-path-block-cooling",
+    "category": "memory",
+    "summary": "Samsung displayed HBM5 technology work, underscoring continued competition and investment in AI-oriented high-bandwidth memory."
+  }
+]
