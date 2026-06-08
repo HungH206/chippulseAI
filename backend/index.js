@@ -166,6 +166,7 @@ app.post('/api/evaluate', async (req, res) => {
       demand_score: scoreContext.score,
       risk_band: scoreContext.risk_band,
       score_breakdown: scoreContext.score_breakdown,
+      supply_availability: scoreContext.supply_availability,
       trend: analysisData.trend === 'Decreasing' ? 'Declining' : (analysisData.trend || 'Stable'),
       confidence: analysisData.confidence || 'Medium',
       summary: analysisData.explanation || `Demand analysis for ${component}: score ${scoreContext.score}/100`,

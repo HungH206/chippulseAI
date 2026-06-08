@@ -59,6 +59,7 @@ async function getRecentAnalyses(limit = 10) {
           recommendations: 1,
           risk_band: 1,
           score_breakdown: 1,
+          supply_availability: 1,
           market_signals: 1,
           historical_matches: 1,
           retrieval_metadata: 1,

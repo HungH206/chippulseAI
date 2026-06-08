@@ -83,7 +83,7 @@ export default function DemandBenchmarkGraph({ data }) {
     hasData
       ? h(
           "div",
-          { className: "flex-1 min-h-60 w-full" },
+          { className: "w-full h-72 min-h-72 mt-2" },
           h(
             ResponsiveContainer,
             { width: "100%", height: "100%" },

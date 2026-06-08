@@ -19,7 +19,115 @@ function addUnique(reasons, reason) {
   }
 }
 
-function scoreDemandPressure(component, customSignal, industryReports) {
+function countMatches(text, terms) {
+  return terms.reduce((count, term) => count + (text.includes(term) ? 1 : 0), 0);
+}
+
+function removePhrases(text, phrases) {
+  return phrases.reduce((cleaned, phrase) => cleaned.replaceAll(phrase, " "), text);
+}
+
+function classifySupplyAvailability(component = "", customSignal = "") {
+  const componentText = component.toLowerCase();
+  const signalText = customSignal.toLowerCase();
+  const negatedScarcityTerms = [
+    "no shortage",
+    "no major allocation",
+    "no allocation",
+    "no allocation reports",
+    "no major allocation reports",
+    "no lead time issue",
+    "no lead-time issue",
+    "no major constraints",
+    "no supply issue",
+  ];
+  const availabilityTerms = [
+    "multiple vendors",
+    "multi vendor",
+    "multi-vendor",
+    "second source",
+    "dual source",
+    "broad distributor inventory",
+    "distributor inventory",
+    "in stock",
+    "readily available",
+    "widely available",
+    "stable pricing",
+    "price stable",
+    "mature node",
+    "commodity",
+    "standard lead time",
+    "normal lead time",
+    "short lead time",
+    ...negatedScarcityTerms,
+  ];
+  const scarcityTerms = [
+    "shortage",
+    "allocation",
+    "fully allocated",
+    "sold out",
+    "backlog",
+    "extended lead time",
+    "lead time expansion",
+    "lead-time expansion",
+    "price hike",
+    "pricing pressure",
+    "capacity constrained",
+    "capacity constraint",
+    "supply issue",
+    "single source",
+  ];
+  const strategicScarcityTerms = [
+    "hbm",
+    "cowos",
+    "blackwell",
+    "h100",
+    "h200",
+    "b200",
+    "mi325",
+    "advanced packaging",
+    "interposer",
+    "abf substrate",
+  ];
+
+  const availabilityEvidenceCount = countMatches(signalText, availabilityTerms);
+  const negatedScarcityCount = countMatches(signalText, negatedScarcityTerms);
+  const rawScarcityCount = countMatches(signalText, scarcityTerms);
+  const scarcityEvidenceCount = Math.max(0, rawScarcityCount - negatedScarcityCount);
+  const strategicScarcity = includesAny(componentText, strategicScarcityTerms);
+
+  let status = "Unknown";
+  if (scarcityEvidenceCount > availabilityEvidenceCount) {
+    status = "Supply Issue";
+  } else if (availabilityEvidenceCount >= 3 && !strategicScarcity) {
+    status = "Widely Available";
+  } else if (availabilityEvidenceCount > scarcityEvidenceCount) {
+    status = "Available";
+  }
+
+  return {
+    status,
+    availability_evidence_count: availabilityEvidenceCount,
+    scarcity_evidence_count: scarcityEvidenceCount,
+    strategic_scarcity_component: strategicScarcity,
+  };
+}
+
+function applyAvailabilityAdjustment(score, reasons, availabilityAssessment, caps) {
+  if (availabilityAssessment.status === "Widely Available") {
+    addUnique(reasons, "User supplied strong availability evidence, so scarcity-driven scoring was capped.");
+    return Math.min(score, caps.widelyAvailable);
+  }
+
+  if (availabilityAssessment.status === "Available") {
+    addUnique(reasons, "User supplied availability evidence that partially offsets scarcity risk.");
+    return Math.min(score, caps.available);
+  }
+
+  return score;
+}
+
+function scoreDemandPressure(component, customSignal, industryReports, availabilityAssessment) {
   const text = `${component} ${customSignal} ${industryReports.map((report) => `${report.title} ${report.summary}`).join(" ")}`.toLowerCase();
   let score = 0;
   const reasons = [];
@@ -44,6 +152,11 @@ function scoreDemandPressure(component, customSignal, industryReports) {
     addUnique(reasons, "The component is exposed to AI compute demand.");
   }
 
+  score = applyAvailabilityAdjustment(score, reasons, availabilityAssessment, {
+    available: 18,
+    widelyAvailable: 10,
+  });
+
   return {
     category: "Demand Pressure",
     score: clamp(score, 0, SCORE_CAPS.demandPressure),
@@ -51,8 +164,23 @@ function scoreDemandPressure(component, customSignal, industryReports) {
   };
 }
 
-function scoreSupplyConstraints(component, customSignal, industryReports) {
-  const text = `${component} ${customSignal} ${industryReports.map((report) => `${report.title} ${report.summary}`).join(" ")}`.toLowerCase();
+function scoreSupplyConstraints(component, customSignal, industryReports, availabilityAssessment) {
+  const rawText = `${component} ${customSignal} ${industryReports.map((report) => `${report.title} ${report.summary}`).join(" ")}`.toLowerCase();
+  const text = removePhrases(rawText, [
+    "no shortage",
+    "no major allocation",
+    "no allocation",
+    "no allocation reports",
+    "no major allocation reports",
+    "no lead time issue",
+    "no lead-time issue",
+    "no major constraints",
+    "no supply issue",
+    "mature node",
+    "normal lead time",
+    "standard lead time",
+    "short lead time",
+  ]);
   let score = 0;
   const reasons = [];
 
@@ -70,6 +198,11 @@ function scoreSupplyConstraints(component, customSignal, industryReports) {
     score += 5;
     addUnique(reasons, "Foundry allocation or wafer capacity is constrained.");
   }
+
+  score = applyAvailabilityAdjustment(score, reasons, availabilityAssessment, {
+    available: 14,
+    widelyAvailable: 6,
+  });
 
   return {
     category: "Supply Constraints",
@@ -108,12 +241,25 @@ function scoreHistoricalSimilarity(historicalMatches) {
   };
 }
 
-function scoreMarketSignals(customSignal, newsArticles = []) {
-  const text = `${customSignal} ${newsArticles.map((article) => `${article.title} ${article.summary}`).join(" ")}`.toLowerCase();
+function scoreMarketSignals(customSignal, newsArticles = [], availabilityAssessment) {
+  const rawText = `${customSignal} ${newsArticles.map((article) => `${article.title} ${article.summary}`).join(" ")}`.toLowerCase();
+  const text = removePhrases(rawText, [
+    "stable pricing",
+    "price stable",
+    "no shortage",
+    "no major allocation",
+    "no allocation",
+    "no allocation reports",
+    "no major allocation reports",
+    "no lead time issue",
+    "no lead-time issue",
+    "no major constraints",
+    "no supply issue",
+  ]);
   let score = 0;
   const reasons = [];
 
-  if (includesAny(text, ["price", "pricing", "increase", "hike", "premium"])) {
+  if (includesAny(text, ["price increase", "pricing pressure", "price hike", "hike", "premium"])) {
     score += 5;
     addUnique(reasons, "User signal mentions pricing pressure.");
   }
@@ -126,6 +272,14 @@ function scoreMarketSignals(customSignal, newsArticles = []) {
   if (includesAny(text, ["capacity reduction", "cut", "exit", "reallocat", "allocation", "constrained", "shortage"])) {
     score += 5;
     addUnique(reasons, "User signal mentions capacity or allocation risk.");
+  }
+
+  if (availabilityAssessment.status === "Widely Available") {
+    score = Math.min(score, 2);
+    addUnique(reasons, "User signal indicates broad availability, stable pricing, or normal lead times.");
+  } else if (availabilityAssessment.status === "Available") {
+    score = Math.min(score, 5);
+    addUnique(reasons, "User signal includes availability evidence that reduces market-signal risk.");
   }
 
   return {
@@ -144,23 +298,28 @@ function getRiskBand(score) {
 }
 
 function calculateDemandScore({ component, customSignal = "", historicalMatches = [], industryReports = [], newsArticles = [] }) {
+  const availabilityAssessment = classifySupplyAvailability(component, customSignal);
   const scoreBreakdown = [
-    scoreDemandPressure(component, customSignal, industryReports),
-    scoreSupplyConstraints(component, customSignal, industryReports),
+    scoreDemandPressure(component, customSignal, industryReports, availabilityAssessment),
+    scoreSupplyConstraints(component, customSignal, industryReports, availabilityAssessment),
     scoreHistoricalSimilarity(historicalMatches),
-    scoreMarketSignals(customSignal, newsArticles),
+    scoreMarketSignals(customSignal, newsArticles, availabilityAssessment),
   ];
-  const score = clamp(scoreBreakdown.reduce((total, item) => total + item.score, 0), 0, 100);
+  const rawScore = scoreBreakdown.reduce((total, item) => total + item.score, 0);
+  const scoreCap = availabilityAssessment.status === "Widely Available" ? 35 : 100;
+  const score = clamp(rawScore, 0, scoreCap);
 
   return {
     score,
     risk_band: getRiskBand(score),
     score_breakdown: scoreBreakdown,
+    supply_availability: availabilityAssessment,
   };
 }
 
 module.exports = {
   SCORE_CAPS,
   calculateDemandScore,
+  classifySupplyAvailability,
   getRiskBand,
 };

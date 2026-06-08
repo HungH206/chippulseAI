@@ -403,7 +403,7 @@ export default function App() {
       {/* Dynamic Alert for Simulated Analyst Fallback Mode */}
       {apiError && isDemoMode && (
         <div className="bg-amber-50 border-b border-amber-200 text-amber-900 py-3.5 px-4 text-xs md:text-sm font-medium transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex items-start md:items-center justify-between gap-3">
+          <div className="max-w-[1500px] mx-auto flex items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
               <span>
@@ -423,7 +423,7 @@ export default function App() {
 
       {/* Main Professional Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-3xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-sm ring-1 ring-slate-800">
@@ -458,7 +458,7 @@ export default function App() {
       {/* Hero Banner with Executive Briefing */}
       <div className="bg-slate-900 text-white py-10 px-4 mb-8 relative overflow-hidden shadow-sm">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(37,99,235,0.12),transparent_70%)]"></div>
-        <div className="max-w-7xl mx-auto relative z-1 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="max-w-[1500px] mx-auto relative z-1 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono mb-3">
               <Activity className="h-3.5 w-3.5 text-emerald-400" />
@@ -493,7 +493,7 @@ export default function App() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* LEFT SIDE: Sourcing & Input Controls */}
@@ -990,6 +990,42 @@ export default function App() {
                           })}
                         </div>
                       )}
+                      {currentResult.supply_availability && (
+                        <div className="border border-slate-200 rounded-xl bg-white p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                              Supply Availability Classifier
+                            </span>
+                            <span className={`inline-flex mt-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold border ${
+                              currentResult.supply_availability.status === "Supply Issue"
+                                ? "bg-red-50 text-red-700 border-red-100"
+                                : currentResult.supply_availability.status === "Widely Available"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                  : currentResult.supply_availability.status === "Available"
+                                    ? "bg-blue-50 text-blue-700 border-blue-100"
+                                    : "bg-slate-50 text-slate-600 border-slate-200"
+                            }`}>
+                              {currentResult.supply_availability.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+                              <div className="text-sm font-black font-mono text-slate-900">{currentResult.supply_availability.availability_evidence_count}</div>
+                              <div className="text-[9px] font-mono uppercase text-slate-400">Available</div>
+                            </div>
+                            <div className="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+                              <div className="text-sm font-black font-mono text-slate-900">{currentResult.supply_availability.scarcity_evidence_count}</div>
+                              <div className="text-[9px] font-mono uppercase text-slate-400">Scarcity</div>
+                            </div>
+                            <div className="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+                              <div className="text-sm font-black font-mono text-slate-900">
+                                {currentResult.supply_availability.strategic_scarcity_component ? "Yes" : "No"}
+                              </div>
+                              <div className="text-[9px] font-mono uppercase text-slate-400">Strategic</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed font-sans font-normal">
                         {currentResult.summary.split("\n\n").map((para, idx) => {
                           if (para.startsWith("###")) {
@@ -1193,7 +1229,7 @@ export default function App() {
       </main>
 
       {/* Footer Branding */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 text-center border-t border-slate-200 pt-8">
+      <footer className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 mt-16 text-center border-t border-slate-200 pt-8">
         <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
           <Cpu className="h-3.5 w-3.5 text-slate-400" />
           <span>ChipPulseAI Sourcing Security Platform &copy; 2026</span>

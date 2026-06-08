@@ -53,11 +53,19 @@ export interface RetrievalMetadata {
   news_articles_index?: string | null;
 }
 
+export interface SupplyAvailability {
+  status: "Unknown" | "Available" | "Widely Available" | "Supply Issue";
+  availability_evidence_count: number;
+  scarcity_evidence_count: number;
+  strategic_scarcity_component: boolean;
+}
+
 export interface EvaluationResult {
   component: string;
   demand_score: number;
   risk_band?: "Stable" | "Watch" | "Elevated" | "High" | "Critical";
   score_breakdown?: ScoreBreakdown[];
+  supply_availability?: SupplyAvailability;
   trend: "Increasing" | "Declining" | "Stable";
   confidence: "High" | "Medium" | "Low";
   summary: string;
