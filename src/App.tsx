@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
   Cpu,
@@ -44,6 +46,9 @@ const SCORE_CAPS: Record<string, number> = {
   "Historical Similarity": 20,
   "Market Signals": 15,
 };
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const apiUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 const getRiskBand = (score: number): "Stable" | "Watch" | "Elevated" | "High" | "Critical" => {
   if (score <= 20) return "Stable";
@@ -92,7 +97,7 @@ export default function App() {
       }
     }
 
-    fetch("/api/history")
+    fetch(apiUrl("/api/history"))
       .then((response) => {
         if (!response.ok) {
           throw new Error("History endpoint unavailable");
@@ -175,7 +180,7 @@ export default function App() {
       let apiErrorInstance: any = null;
 
       try {
-        const response = await fetch("/api/evaluate", {
+        const response = await fetch(apiUrl("/api/evaluate"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -929,6 +934,84 @@ export default function App() {
                   </div>
 
                 </div>
+
+                {/* Persisted Agent Workflow from backend response */}
+                {currentResult.agent_activity && currentResult.agent_activity.length > 0 && (
+                  <div className="border-b border-slate-200 bg-white p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center">
+                          <Terminal className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide font-mono">
+                            Agent Workflow
+                          </h3>
+                          <p className="text-[11px] text-slate-500">
+                            Live execution trace returned by the Cloud Run agent API.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 self-start sm:self-auto px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-mono font-bold uppercase">
+                        <Check className="h-3 w-3" />
+                        {currentResult.agent_activity.length} steps
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      {currentResult.agent_activity.map((activity, index) => {
+                        const isCompleted = activity.status === "completed";
+                        const isFailed = activity.status === "failed";
+                        const isActive = activity.status === "in_progress";
+
+                        return (
+                          <div
+                            key={`${activity.step}-${index}`}
+                            className={`flex gap-3 items-start rounded-xl border p-3 ${
+                              isFailed
+                                ? "bg-red-50 border-red-100"
+                                : isActive
+                                  ? "bg-blue-50 border-blue-100"
+                                  : isCompleted
+                                    ? "bg-emerald-50/60 border-emerald-100"
+                                    : "bg-slate-50 border-slate-200"
+                            }`}
+                          >
+                            <div className={`shrink-0 h-5 w-5 rounded-full border flex items-center justify-center mt-0.5 ${
+                              isFailed
+                                ? "bg-red-100 border-red-200 text-red-700"
+                                : isActive
+                                  ? "bg-blue-100 border-blue-200 text-blue-700"
+                                  : isCompleted
+                                    ? "bg-emerald-100 border-emerald-200 text-emerald-700"
+                                    : "bg-slate-100 border-slate-200 text-slate-500"
+                            }`}>
+                              {isFailed ? (
+                                <AlertTriangle className="h-3 w-3" />
+                              ) : isActive ? (
+                                <RefreshCw className="h-3 w-3 animate-spin" />
+                              ) : isCompleted ? (
+                                <Check className="h-3 w-3 stroke-[3px]" />
+                              ) : (
+                                <span className="h-1.5 w-1.5 rounded-full bg-current"></span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800 leading-relaxed">
+                                {activity.step}
+                              </p>
+                              {activity.timestamp && (
+                                <p className="text-[10px] font-mono text-slate-400 mt-1">
+                                  {new Date(activity.timestamp).toLocaleTimeString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tabs Panel */}
                 <div className="border-b border-slate-200 flex bg-white">

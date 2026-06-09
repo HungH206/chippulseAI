@@ -20,6 +20,7 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(cors());
 app.use(express.json());
@@ -396,8 +397,8 @@ app.get('/api/test-vector', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`POST /api/analyze - Raw Gemini response (for testing)`);
   console.log(`POST /api/evaluate - Formatted response (for frontend)`);
   console.log(`GET /api/history - Recent persisted analyses`);

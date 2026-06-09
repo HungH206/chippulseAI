@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node index.js",
+    "start": "node index.js",
     "check-env": "node scripts/check-env.js",
     "check-mongo": "node scripts/check-mongo.js",
     "backfill:metadata": "node scripts/backfill-analysis-metadata.js",
