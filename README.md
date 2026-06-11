@@ -330,5 +330,4 @@ Rather than relying on a language model alone, we found that combining Gemini re
 
 ## License
 
-MIT License
-
+This project is licensed under the [MIT License](LICENSE).
