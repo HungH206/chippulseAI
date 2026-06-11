@@ -51,6 +51,21 @@ Outputs include:
 
 ---
 
+### Component Alternative Hub
+
+When a component carries elevated demand or supply risk, ChipPulse recommends lower-risk substitutes so teams can act, not just observe.
+
+The Alternative Hub:
+
+* Infers the component category (CPU, GPU, memory, storage, mini PC)
+* Retrieves candidates from a curated components catalog
+* Ranks alternatives by lower risk score and semantic similarity to the original component
+* Surfaces a plain-language reason for each suggestion
+
+Retrieval is powered by MongoDB Atlas Vector Search over the components catalog, with an automatic fallback to local catalog scoring when vector search is unavailable. The agent exposes this through a dedicated `retrieve_component_alternatives` tool backed by the `/api/catalog-search` endpoint.
+
+---
+
 ### Agentic Workflow
 
 ChipPulse operates as a multi-tool AI agent.
@@ -65,9 +80,10 @@ Workflow:
    * Industry Reports
    * News Articles
 4. Risk Scoring Engine calculates demand pressure
-5. Gemini generates reasoning and recommendations
-6. Results are stored in MongoDB memory
-7. Agent activity and citations are returned
+5. Component Alternative Hub recommends lower-risk substitutes
+6. Gemini generates reasoning and recommendations
+7. Results are stored in MongoDB memory
+8. Agent activity and citations are returned
 
 ---
 
@@ -106,6 +122,7 @@ Collections:
 * historical_events
 * industry_reports
 * news_articles
+* components_catalog
 * analyses
 
 Vector indexes:
@@ -113,6 +130,7 @@ Vector indexes:
 * historical_events_vector
 * industry_reports_vector
 * news_articles_vector
+* components_catalog_vector
 
 ---
 
@@ -318,7 +336,6 @@ Rather than relying on a language model alone, we found that combining Gemini re
 ## Future Work
 
 * Real-time semiconductor intelligence feeds
-* Alternative component recommendations
 * Supplier concentration analysis
 * Multi-component system risk forecasting
 * Procurement planning dashboards
