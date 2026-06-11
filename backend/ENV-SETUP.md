@@ -24,6 +24,7 @@ GEMINI_EMBEDDING_DIMENSIONS=768
 MONGODB_HISTORICAL_EVENTS_VECTOR_INDEX=historical_events_vector
 MONGODB_INDUSTRY_REPORTS_VECTOR_INDEX=industry_reports_index
 MONGODB_NEWS_ARTICLES_VECTOR_INDEX=news_articles_vector
+MONGODB_COMPONENTS_CATALOG_VECTOR_INDEX=components_catalog_vector
 ```
 
 Restore the file from the example, then edit values locally:
@@ -44,6 +45,7 @@ For local API-key mode:
 ```bash
 GOOGLE_GENAI_USE_VERTEXAI=FALSE
 GOOGLE_API_KEY=...
+CHIPPULSE_BACKEND_URL=http://localhost:3000
 ```
 
 Restore the agent env file from its example:

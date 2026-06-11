@@ -12,7 +12,9 @@ const {
   saveAnalysis,
 } = require('./services/db.js');
 const { calculateDemandScore } = require('./services/scoring.js');
+const { findAlternatives, findAlternativesWithVectorSearch, inferCategory } = require('./services/alternatives.js');
 const {
+  searchComponentsCatalog,
   searchHistoricalEvents,
   searchIndustryReports,
   searchNewsArticles,
@@ -68,12 +70,15 @@ app.post('/api/evaluate', async (req, res) => {
     let historicalVectorSearchUsed = true;
     let industryVectorSearchUsed = true;
     let newsVectorSearchUsed = true;
+    let componentsCatalogVectorSearchUsed = true;
+    let componentsCatalogRetrievalMode = 'Atlas Vector Search';
+    let queryEmbedding;
     let historicalEvents;
     let industryReports;
     let newsArticles;
 
     try {
-      const queryEmbedding = await getEmbedding(`${component} ${customSignal || ''}`.trim());
+      queryEmbedding = await getEmbedding(`${component} ${customSignal || ''}`.trim());
 
       historicalEvents = await searchHistoricalEvents(queryEmbedding, 3).catch(async (error) => {
         historicalRetrievalMode = 'category fallback';
@@ -107,6 +112,8 @@ app.post('/api/evaluate', async (req, res) => {
       historicalVectorSearchUsed = false;
       industryVectorSearchUsed = false;
       newsVectorSearchUsed = false;
+      componentsCatalogVectorSearchUsed = false;
+      componentsCatalogRetrievalMode = 'local catalog fallback';
       console.warn('Embedding unavailable, falling back to non-vector retrieval:', embeddingError.message);
       [historicalEvents, industryReports, newsArticles] = await Promise.all([
         getHistoricalEventsForComponent(component),
@@ -141,6 +148,21 @@ app.post('/api/evaluate', async (req, res) => {
       industryReports,
       newsArticles,
     });
+    const alternativesContext = await findAlternativesWithVectorSearch(
+      component,
+      scoreContext.score,
+      queryEmbedding,
+      3
+    );
+    componentsCatalogVectorSearchUsed = alternativesContext.vector_search_used;
+    componentsCatalogRetrievalMode = alternativesContext.retrieval_mode;
+    retrievalMetadata.vector_search_used = retrievalMetadata.vector_search_used || componentsCatalogVectorSearchUsed;
+    retrievalMetadata.components_catalog_vector_search_used = componentsCatalogVectorSearchUsed;
+    retrievalMetadata.components_catalog_retrieval_mode = componentsCatalogRetrievalMode;
+    retrievalMetadata.components_catalog_index = componentsCatalogVectorSearchUsed
+      ? process.env.MONGODB_COMPONENTS_CATALOG_VECTOR_INDEX || 'components_catalog_vector'
+      : null;
+
     const result = await analyzeDemand(component, customSignal, {
       historicalEvents,
       industryReports,
@@ -166,6 +188,7 @@ app.post('/api/evaluate', async (req, res) => {
       component,
       demand_score: scoreContext.score,
       risk_band: scoreContext.risk_band,
+      alternatives: alternativesContext.alternatives,
       score_breakdown: scoreContext.score_breakdown,
       supply_availability: scoreContext.supply_availability,
       trend: analysisData.trend === 'Decreasing' ? 'Declining' : (analysisData.trend || 'Stable'),
@@ -202,6 +225,7 @@ app.post('/api/evaluate', async (req, res) => {
       historical_events_vector_search_used: retrievalMetadata.historical_events_vector_search_used,
       industry_reports_vector_search_used: retrievalMetadata.industry_reports_vector_search_used,
       news_articles_vector_search_used: retrievalMetadata.news_articles_vector_search_used,
+      components_catalog_vector_search_used: retrievalMetadata.components_catalog_vector_search_used,
       historical_events_retrieved: retrievalMetadata.historical_events_retrieved,
       industry_reports_retrieved: retrievalMetadata.industry_reports_retrieved,
       news_articles_retrieved: retrievalMetadata.news_articles_retrieved,
@@ -243,6 +267,7 @@ app.post('/api/evaluate', async (req, res) => {
           status: "completed",
         },
         { step: "Calculated deterministic demand score", status: "completed" },
+        { step: `Selected lower-risk supply-chain alternatives via ${componentsCatalogRetrievalMode}`, status: "completed" },
         { step: "Generated Gemini demand explanation", status: "completed" },
         { step: "Stored analysis in MongoDB", status: "completed" },
       ],
@@ -371,6 +396,84 @@ app.post('/api/retrieve-news', async (req, res) => {
   }
 });
 
+app.post('/api/catalog-search', async (req, res) => {
+  try {
+    const { component, customSignal, riskScore, limit = 3 } = req.body;
+
+    if (!component) {
+      return res.status(400).json({ error: 'component field is required' });
+    }
+
+    const queryText = `${component} ${customSignal || ''}`.trim();
+    const queryEmbedding = await getEmbedding(queryText);
+    const category = inferCategory(component);
+    const maxRisk = Number.isFinite(riskScore) ? riskScore : 100;
+    const matches = await searchComponentsCatalog(queryEmbedding, {
+      category,
+      maxRisk,
+      limit,
+    });
+
+    res.json({
+      component,
+      category,
+      retrieval_metadata: {
+        components_catalog_retrieved: matches.length,
+        vector_search_used: true,
+        retrieval_mode: 'Atlas Vector Search',
+        collection: 'components_catalog',
+        index: process.env.MONGODB_COMPONENTS_CATALOG_VECTOR_INDEX || 'components_catalog_vector',
+      },
+      alternatives: matches.map((item) => ({
+        component: item.component,
+        category: item.category,
+        risk: item.risk_score,
+        reason: item.reason,
+        similarity: typeof item.score === 'number' ? Math.round(item.score * 100) : undefined,
+      })),
+    });
+  } catch (error) {
+    console.error('Components catalog vector search failed:', error);
+    const { component, riskScore, limit = 3 } = req.body || {};
+    res.status(200).json({
+      component,
+      retrieval_metadata: {
+        vector_search_used: false,
+        retrieval_mode: 'local catalog fallback',
+        collection: 'components_catalog',
+        index: process.env.MONGODB_COMPONENTS_CATALOG_VECTOR_INDEX || 'components_catalog_vector',
+        error: error.message || 'Components catalog vector search failed',
+      },
+      alternatives: component ? findAlternatives(component, Number.isFinite(riskScore) ? riskScore : 100, limit) : [],
+    });
+  }
+});
+
+app.get('/api/catalog-vector-index', (req, res) => {
+  res.json({
+    collection: 'components_catalog',
+    index: process.env.MONGODB_COMPONENTS_CATALOG_VECTOR_INDEX || 'components_catalog_vector',
+    definition: {
+      fields: [
+        {
+          type: 'vector',
+          path: 'embedding',
+          numDimensions: Number(process.env.GEMINI_EMBEDDING_DIMENSIONS || 768),
+          similarity: 'cosine',
+        },
+        {
+          type: 'filter',
+          path: 'category',
+        },
+        {
+          type: 'filter',
+          path: 'risk_score',
+        },
+      ],
+    },
+  });
+});
+
 app.get('/api/test-vector', async (req, res) => {
   try {
     const query = req.query.q || 'Apple M4 Mac Mini demand';
@@ -405,5 +508,7 @@ app.listen(PORT, HOST, () => {
   console.log(`POST /api/retrieve-events - Retrieve vector historical events`);
   console.log(`POST /api/retrieve-reports - Retrieve vector industry reports`);
   console.log(`POST /api/retrieve-news - Retrieve vector news articles`);
+  console.log(`POST /api/catalog-search - Retrieve component alternatives via Atlas Vector Search`);
+  console.log(`GET /api/catalog-vector-index - Atlas Vector Search index definition for components_catalog`);
   console.log(`GET /api/test-vector - Test MongoDB Atlas Vector Search`);
 });

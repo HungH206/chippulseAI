@@ -89,6 +89,24 @@ def retrieve_recent_news(component: str, custom_signal: Optional[str] = None) ->
     )
 
 
+def retrieve_component_alternatives(
+    component: str,
+    risk_score: int = 100,
+    custom_signal: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Retrieve lower-risk component alternatives from the MongoDB Atlas components catalog."""
+
+    return _request_json(
+        "POST",
+        "/api/catalog-search",
+        json={
+            "component": component,
+            "riskScore": risk_score,
+            "customSignal": custom_signal or "",
+        },
+    )
+
+
 def evaluate_component(component: str, custom_signal: Optional[str] = None) -> Dict[str, Any]:
     """Generate and store a semiconductor demand analysis using ChipPulse backend scoring."""
 

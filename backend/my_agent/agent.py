@@ -8,6 +8,7 @@ from .tools import (
     get_recent_analyses,
     retrieve_historical_events,
     retrieve_industry_reports,
+    retrieve_component_alternatives,
     retrieve_recent_news,
 )
 
@@ -80,17 +81,18 @@ Your responsibilities:
 2. Retrieve historical semiconductor events from MongoDB memory.
 3. Retrieve industry reports from MongoDB memory.
 4. Retrieve recent market news from MongoDB memory.
-5. Explain risk drivers and supply chain constraints.
-6. Provide concise procurement and planning recommendations.
-7. Reference recent analyses when useful.
-8. Use MongoDB MCP tools for direct memory inspection and aggregation when the
+5. Retrieve lower-risk component alternatives from MongoDB Atlas catalog memory.
+6. Explain risk drivers and supply chain constraints.
+7. Provide concise procurement and planning recommendations.
+8. Reference recent analyses when useful.
+9. Use MongoDB MCP tools for direct memory inspection and aggregation when the
    user asks about saved analyses, collection contents, schemas, counts, or
    trends across memory.
 
 Always use tools when available.
 For a component analysis request, call retrieve_historical_events,
-retrieve_industry_reports, retrieve_recent_news, and evaluate_component before
-making conclusions.
+retrieve_industry_reports, retrieve_recent_news, retrieve_component_alternatives,
+and evaluate_component before making conclusions.
 Use get_recent_analyses when the user asks about prior evaluations or history.
 Use MongoDB MCP tools for broader database questions such as "highest average
 demand score", "show recent DDR5 analyses", "inspect collections", or
@@ -111,6 +113,7 @@ root_agent = Agent(
         retrieve_historical_events,
         retrieve_industry_reports,
         retrieve_recent_news,
+        retrieve_component_alternatives,
         evaluate_component,
         get_recent_analyses,
     ]

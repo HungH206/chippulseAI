@@ -19,7 +19,8 @@ import {
   RefreshCw,
   ExternalLink,
   Check,
-  Terminal
+  Terminal,
+  ShieldCheck
 } from "lucide-react";
 import DemandBenchmarkGraph from "./Graph";
 import { PRESET_COMPONENTS, SUGGESTED_SIGNALS, getPresetResult } from "./presets";
@@ -56,6 +57,50 @@ const getRiskBand = (score: number): "Stable" | "Watch" | "Elevated" | "High" | 
   if (score <= 60) return "Elevated";
   if (score <= 80) return "High";
   return "Critical";
+};
+
+const FALLBACK_ALTERNATIVES: Record<string, { component: string; category: string; risk: number; reason: string }[]> = {
+  memory: [
+    { component: "Kingston Fury DDR4-3600 16GB", category: "memory", risk: 36, reason: "Commodity DDR4 module with broad distributor availability and lower exposure to DDR5 allocation swings." },
+    { component: "Crucial Pro DDR4-3200 16GB", category: "memory", risk: 32, reason: "Standard desktop memory SKU with mature manufacturing and many compatible platforms." },
+    { component: "Corsair Vengeance LPX DDR4-3200 16GB", category: "memory", risk: 34, reason: "Mature DDR4 supply chain with several second-source paths." },
+  ],
+  mini_pc: [
+    { component: "Intel NUC 13 Pro Core i5 Mini PC", category: "mini_pc", risk: 42, reason: "Compact x86 system with broad Windows/Linux compatibility and configurable memory/storage." },
+    { component: "ASUS ExpertCenter PN53 Ryzen 7 Mini PC", category: "mini_pc", risk: 43, reason: "AMD Ryzen path that diversifies away from Apple silicon and Intel-only sourcing." },
+    { component: "Dell OptiPlex Micro Core i5", category: "mini_pc", risk: 38, reason: "Business micro desktop with fleet purchasing support and easier substitution planning." },
+  ],
+  cpu: [
+    { component: "Intel Core i5-13400 CPU", category: "cpu", risk: 39, reason: "Mainstream Intel CPU with wide OEM adoption and stable availability." },
+    { component: "AMD Ryzen 7 7700 CPU", category: "cpu", risk: 47, reason: "Balanced x86 option with strong performance and broad channel availability." },
+    { component: "Intel Core i9-13900 CPU", category: "cpu", risk: 51, reason: "Premium x86 processor for workstation needs without Apple silicon dependence." },
+  ],
+  gpu: [
+    { component: "Intel Arc A770 GPU", category: "gpu", risk: 43, reason: "Alternative GPU vendor path that reduces dependency on NVIDIA allocation cycles." },
+    { component: "NVIDIA RTX 4060 GPU", category: "gpu", risk: 49, reason: "Mainstream graphics card with broader retail supply than datacenter GPU products." },
+    { component: "AMD Radeon Pro W7600 GPU", category: "gpu", risk: 50, reason: "Professional GPU with lower AI datacenter allocation pressure than flagship accelerators." },
+  ],
+  storage: [
+    { component: "Inland TN320 1TB SSD NVMe PCIe Gen 3x4", category: "storage", risk: 22, reason: "Lower-cost PCIe Gen 3 NVMe drive with practical performance for budget mini PC and desktop builds." },
+    { component: "512GB SSD NVMe PCIe Gen 3", category: "storage", risk: 20, reason: "Budget-friendly capacity point with broad supplier availability and lower replacement cost." },
+    { component: "1TB SSD NVMe PCIe Gen 4", category: "storage", risk: 26, reason: "Mainstream 1TB Gen 4 substitute with good performance and multiple supplier options." },
+  ],
+};
+
+const getFallbackAlternatives = (component: string, score: number) => {
+  const text = component.toLowerCase();
+  const category =
+    ["mac mini", "m4", "m3", "m2", "apple silicon", "mini pc", "nuc"].some((term) => text.includes(term))
+      ? "mini_pc"
+      : ["ddr", "dram", "memory", "ram", "hbm"].some((term) => text.includes(term))
+        ? "memory"
+        : ["gpu", "rtx", "radeon", "blackwell", "h100", "h200", "accelerator"].some((term) => text.includes(term))
+          ? "gpu"
+          : ["ssd", "nvme", "nand", "storage"].some((term) => text.includes(term))
+            ? "storage"
+            : "cpu";
+
+  return (FALLBACK_ALTERNATIVES[category] || FALLBACK_ALTERNATIVES.cpu).filter((item) => item.risk < score).slice(0, 3);
 };
 
 export default function App() {
@@ -322,6 +367,7 @@ export default function App() {
         `Risk Offset: Establish 12-month non-cancellable forward buy agreements to lock priority status.`,
         `Engineering Strategy: Evaluate system level scaling metrics for alternate product families to bypass fabrication delays.`
       ],
+      alternatives: getFallbackAlternatives(comp, score),
       summary: `### Executive Intelligence Summary\n\nDemand pressure for **${comp}** is currently ranked at **${score}/100** indicating a **${trend}** market stance with **${confidence}** analyst determination.\n\n${signalText} While current macro conditions are highly fluid due to deep multi-tier sub-component wait times, advanced logic nodes remain tightly allocated. Hardware planners must prepare for sustained packaging delays and rising wafer costs from primary foundries across APAC.\n\nOver the short-to-medium term, scaling limits of silicon substrates and high-density packaging components like ABF and CoWoS will determine physical production ceilings. Enterprise procurement leaders should secure long-term capital guarantees prior to planning large cluster rollouts.`,
       citations: [
         { title: "Semiconductor Industry Outlook & Capacity Insights", source: "SIA", url: "https://www.semiconductors.org" },
@@ -376,6 +422,13 @@ export default function App() {
   const activeColor = currentResult ? getScoreColorClass(currentResult.demand_score) : { text: "text-slate-500", border: "border-slate-300", radial: "#475569", bg: "bg-slate-500" };
 
   const currentRiskBand = currentResult ? (currentResult.risk_band || getRiskBand(currentResult.demand_score)) : "Stable";
+  const displayAlternatives = currentResult
+    ? (currentResult.alternatives && currentResult.alternatives.length > 0
+      ? currentResult.alternatives
+      : getFallbackAlternatives(currentResult.component, currentResult.demand_score))
+    : [];
+  const alternativesRetrievalMode = currentResult?.retrieval_metadata?.components_catalog_retrieval_mode
+    || (currentResult?.components_catalog_vector_search_used ? "Atlas Vector Search" : "Local Catalog");
 
   const formatLedgerDate = (isoDate?: string) => {
     if (!isoDate) return "Unknown";
@@ -935,6 +988,51 @@ export default function App() {
 
                 </div>
 
+                {/* Always-visible Alternatives Panel */}
+                {displayAlternatives.length > 0 && (
+                  <div className="border-b border-emerald-100 bg-emerald-50/50 p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                          <ShieldCheck className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide font-mono">
+                            Supply-Chain Optimized Alternatives
+                          </h3>
+                          <p className="text-[11px] text-slate-500">
+                            Lower-risk replacements ranked from the internal component catalog.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 self-start sm:self-auto px-2.5 py-1 rounded-full bg-white border border-emerald-100 text-emerald-700 text-[10px] font-mono font-bold uppercase">
+                        <ShieldCheck className="h-3 w-3" />
+                        {displayAlternatives.length} alternatives · {alternativesRetrievalMode}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {displayAlternatives.map((alternative, index) => (
+                        <div key={`${alternative.component}-${index}`} className="bg-white border border-emerald-100 rounded-xl p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                <span className="text-sm font-bold text-slate-900 leading-snug">{alternative.component}</span>
+                              </div>
+                              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{alternative.reason}</p>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <div className="text-[9px] uppercase font-mono text-slate-400">Risk</div>
+                              <div className="text-sm font-black font-mono text-emerald-700">{alternative.risk}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Persisted Agent Workflow from backend response */}
                 {currentResult.agent_activity && currentResult.agent_activity.length > 0 && (
                   <div className="border-b border-slate-200 bg-white p-5">
@@ -1154,6 +1252,49 @@ export default function App() {
                           <strong className="font-bold">Procurement Notice:</strong> Supply bottlenecks may trigger secondary sub-component delays across tiered suppliers not directly indicated below. Maintain high communication thresholds with distributors.
                         </div>
                       </div>
+
+                      {displayAlternatives.length > 0 && (
+                        <div className="border border-emerald-100 bg-emerald-50/50 rounded-xl p-4">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                                <ShieldCheck className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-slate-900 uppercase font-mono tracking-wide">
+                                  Supply-Chain Optimized Alternatives
+                                </h4>
+                                <p className="text-[11px] text-slate-500">
+                                  Lower-risk replacements ranked from the internal component catalog.
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono font-bold text-emerald-700 bg-white border border-emerald-100 rounded-full px-2 py-1">
+                              {displayAlternatives.length} options · {alternativesRetrievalMode}
+                            </span>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            {displayAlternatives.map((alternative, index) => (
+                              <div key={`${alternative.component}-${index}`} className="bg-white border border-emerald-100 rounded-lg p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                      <span className="text-sm font-bold text-slate-900">{alternative.component}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{alternative.reason}</p>
+                                  </div>
+                                  <div className="shrink-0 text-right">
+                                    <div className="text-[9px] uppercase font-mono text-slate-400">Risk</div>
+                                    <div className="text-sm font-black font-mono text-emerald-700">{alternative.risk}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="space-y-3">
                         {currentResult.recommendations && currentResult.recommendations.length > 0 ? (

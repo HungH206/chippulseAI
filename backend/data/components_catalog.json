@@ -1,0 +1,230 @@
+[
+  {
+    "component": "Kingston Fury DDR4-3600 16GB",
+    "category": "memory",
+    "risk_score": 36,
+    "reason": "Commodity DDR4 module with broad distributor availability and multiple motherboard generations supported."
+  },
+  {
+    "component": "Corsair Vengeance LPX DDR4-3200 16GB",
+    "category": "memory",
+    "risk_score": 34,
+    "reason": "Mature DDR4 supply chain with several second-source paths and lower exposure to DDR5 allocation swings."
+  },
+  {
+    "component": "Crucial Pro DDR4-3200 16GB",
+    "category": "memory",
+    "risk_score": 32,
+    "reason": "Standard desktop memory SKU with lower scarcity risk than high-speed DDR5 parts."
+  },
+  {
+    "component": "G.Skill Ripjaws V DDR4-3600 16GB",
+    "category": "memory",
+    "risk_score": 38,
+    "reason": "Widely available enthusiast memory that avoids newer DDR5 controller and PMIC constraints."
+  },
+  {
+    "component": "Samsung DDR4-2666 16GB UDIMM",
+    "category": "memory",
+    "risk_score": 30,
+    "reason": "High-volume JEDEC memory with mature manufacturing and many compatible platforms."
+  },
+  {
+    "component": "Micron DDR4-3200 16GB UDIMM",
+    "category": "memory",
+    "risk_score": 31,
+    "reason": "Enterprise-friendly commodity memory with stable supply and broad OEM sourcing."
+  },
+  {
+    "component": "TeamGroup Elite DDR4-3200 16GB",
+    "category": "memory",
+    "risk_score": 35,
+    "reason": "Mainstream DDR4 alternative with less exposure to AI-server memory demand."
+  },
+  {
+    "component": "Patriot Viper Steel DDR4-3600 16GB",
+    "category": "memory",
+    "risk_score": 39,
+    "reason": "Lower-risk substitute when DDR5 supply or platform cost is the main concern."
+  },
+  {
+    "component": "Intel NUC 13 Pro Core i5 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 42,
+    "reason": "x86 mini PC with mature Intel mobile silicon and broad Windows/Linux software compatibility."
+  },
+  {
+    "component": "Intel NUC 13 Pro Core i7 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 46,
+    "reason": "Comparable compact form factor with more configurable memory, storage, and procurement channels."
+  },
+  {
+    "component": "Intel NUC 12 Core i3 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 35,
+    "reason": "Lower-cost office and edge-compute substitute with less demand pressure than premium Apple silicon."
+  },
+  {
+    "component": "ASUS PN64 Core i5 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 40,
+    "reason": "Business mini PC platform with replaceable memory and storage, reducing single-vendor lock-in."
+  },
+  {
+    "component": "ASUS PN64 Core i7 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 44,
+    "reason": "Competitive x86 performance in a small chassis with enterprise-friendly servicing options."
+  },
+  {
+    "component": "ASUS ExpertCenter PN53 Ryzen 7 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 43,
+    "reason": "AMD Ryzen mini PC option that diversifies away from Apple silicon and Intel-only sourcing."
+  },
+  {
+    "component": "Minisforum UM790 Pro Ryzen 9 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 48,
+    "reason": "High-performance Ryzen compact system that can replace premium desktop-class mini workstations."
+  },
+  {
+    "component": "Minisforum UM780 XTX Ryzen 7 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 45,
+    "reason": "Strong multicore performance with standard memory and SSD upgrade paths."
+  },
+  {
+    "component": "Beelink SER7 Ryzen 7 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 41,
+    "reason": "Compact AMD platform with lower procurement dependence on a single vertically integrated vendor."
+  },
+  {
+    "component": "Beelink SER5 Ryzen 5 Mini PC",
+    "category": "mini_pc",
+    "risk_score": 37,
+    "reason": "Cost-effective mini PC for general workloads with commodity x86 parts and wider vendor availability."
+  },
+  {
+    "component": "Lenovo ThinkCentre M70q Core i5 Tiny",
+    "category": "mini_pc",
+    "risk_score": 39,
+    "reason": "Enterprise tiny desktop with predictable service contracts and stable commercial availability."
+  },
+  {
+    "component": "HP Elite Mini 800 Core i7",
+    "category": "mini_pc",
+    "risk_score": 43,
+    "reason": "Commercial mini desktop with standard procurement channels and configurable lifecycle support."
+  },
+  {
+    "component": "Dell OptiPlex Micro Core i5",
+    "category": "mini_pc",
+    "risk_score": 38,
+    "reason": "Business micro desktop with broad fleet purchasing support and easier substitution planning."
+  },
+  {
+    "component": "AMD Ryzen 5 7600 CPU",
+    "category": "cpu",
+    "risk_score": 44,
+    "reason": "Mainstream desktop CPU with multiple board vendors and less pressure than datacenter accelerators."
+  },
+  {
+    "component": "AMD Ryzen 7 7700 CPU",
+    "category": "cpu",
+    "risk_score": 47,
+    "reason": "Balanced x86 option with strong performance and broad channel availability."
+  },
+  {
+    "component": "AMD Ryzen 9 7900 CPU",
+    "category": "cpu",
+    "risk_score": 52,
+    "reason": "High-performance desktop CPU with lower sourcing risk than specialized AI silicon."
+  },
+  {
+    "component": "Intel Core i5-13400 CPU",
+    "category": "cpu",
+    "risk_score": 39,
+    "reason": "Mainstream Intel CPU with wide OEM adoption and stable availability."
+  },
+  {
+    "component": "Intel Core i7-13700 CPU",
+    "category": "cpu",
+    "risk_score": 45,
+    "reason": "Strong desktop-class performance with multiple system integrator sources."
+  },
+  {
+    "component": "Intel Core i9-13900 CPU",
+    "category": "cpu",
+    "risk_score": 51,
+    "reason": "Premium x86 processor that can substitute high-end workstation needs without Apple silicon dependence."
+  },
+  {
+    "component": "AMD Radeon Pro W7600 GPU",
+    "category": "gpu",
+    "risk_score": 50,
+    "reason": "Professional GPU with lower AI datacenter allocation pressure than flagship accelerators."
+  },
+  {
+    "component": "NVIDIA RTX 4060 GPU",
+    "category": "gpu",
+    "risk_score": 49,
+    "reason": "Mainstream graphics card with broader retail supply than datacenter GPU products."
+  },
+  {
+    "component": "NVIDIA RTX A2000 Workstation GPU",
+    "category": "gpu",
+    "risk_score": 54,
+    "reason": "Workstation-class GPU with stable enterprise channels and lower HBM exposure."
+  },
+  {
+    "component": "Intel Arc A770 GPU",
+    "category": "gpu",
+    "risk_score": 43,
+    "reason": "Alternative GPU vendor path that reduces dependency on NVIDIA allocation cycles."
+  },
+  {
+    "component": "Inland TN320 1TB SSD NVMe PCIe Gen 3x4 M.2 2280 3D NAND TLC",
+    "category": "storage",
+    "risk_score": 22,
+    "reason": "Lower-cost PCIe Gen 3 NVMe drive with practical performance for budget mini PC and desktop builds."
+  },
+  {
+    "component": "512GB SSD NVMe PCIe Gen 3",
+    "category": "storage",
+    "risk_score": 20,
+    "reason": "Budget-friendly capacity point with broad supplier availability and lower replacement cost."
+  },
+  {
+    "component": "512GB SSD NVMe PCIe Gen 4",
+    "category": "storage",
+    "risk_score": 24,
+    "reason": "Affordable Gen 4 option when faster storage is needed without committing to a premium 1TB drive."
+  },
+  {
+    "component": "1TB SSD NVMe PCIe Gen 4",
+    "category": "storage",
+    "risk_score": 26,
+    "reason": "Mainstream 1TB Gen 4 substitute with good performance and multiple supplier options."
+  },
+  {
+    "component": "Samsung 990 Pro 1TB NVMe SSD",
+    "category": "storage_scarcity",
+    "risk_score": 62,
+    "reason": "Premium Gen 4 drive that can be overkill for budget builds and more exposed to price pressure."
+  },
+  {
+    "component": "WD Black SN850X 1TB NVMe SSD",
+    "category": "storage_scarcity",
+    "risk_score": 60,
+    "reason": "High-performance premium SSD that may raise BOM cost compared with commodity Gen 3 or generic Gen 4 storage."
+  },
+  {
+    "component": "Crucial P5 Plus 1TB NVMe SSD",
+    "category": "storage_scarcity",
+    "risk_score": 56,
+    "reason": "Name-brand Gen 4 storage can be less cost-optimized than generic NVMe alternatives for hackathon/demo builds."
+  }
+]

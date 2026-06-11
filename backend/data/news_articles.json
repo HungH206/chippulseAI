@@ -1,5 +1,14 @@
 [
   {
+    "article_id": "news_ssd_storage_price_increases_2026",
+    "title": "The AI RAM Shortage Is Also Driving Up SSD Prices",
+    "source": "The Verge",
+    "published_at": "2026-04-08",
+    "url": "https://www.theverge.com/tech/908916/ssd-storage-shortages-price-increases",
+    "category": "storage",
+    "summary": "The Verge reported that AI-driven memory demand is reducing consumer NAND and SSD availability, with NVMe SSD prices doubling or tripling since late 2025 and premium drives seeing steep price increases."
+  },
+  {
     "article_id": "news_memory_shortage_trade_groups_2026",
     "title": "AI Data Center Memory Demand Raises Shortage Concerns",
     "source": "Tom's Hardware",

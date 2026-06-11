@@ -76,7 +76,19 @@ function newsArticleEmbeddingText(article) {
     .join(" ");
 }
 
+function componentCatalogEmbeddingText(component) {
+  return [
+    component.component,
+    component.category,
+    `risk score ${component.risk_score}`,
+    component.reason,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 module.exports = {
+  componentCatalogEmbeddingText,
   getEmbedding,
   historicalEventEmbeddingText,
   industryReportEmbeddingText,
